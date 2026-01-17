@@ -18,7 +18,7 @@ import {
 } from "./dialog";
 import { Button } from "./button";
 import { Input } from "./input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // 확인 모달 (삭제 등 위험한 작업용)
 interface ConfirmModalProps {
@@ -55,7 +55,11 @@ export function ConfirmModal({
           {cancelText && <AlertDialogCancel>{cancelText}</AlertDialogCancel>}
           <AlertDialogAction
             onClick={onConfirm}
-            className={variant === "destructive" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+            className={
+              variant === "destructive"
+                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                : ""
+            }
           >
             {confirmText}
           </AlertDialogAction>
@@ -91,9 +95,17 @@ export function InputModal({
 }: InputModalProps) {
   const [value, setValue] = useState(defaultValue);
 
+  // defaultValue가 변경되면 value도 업데이트
+  useEffect(() => {
+    if (open) {
+      setValue(defaultValue);
+    }
+  }, [defaultValue, open]);
+
   const handleConfirm = () => {
     onConfirm(value);
     setValue("");
+    onOpenChange(false); // 모달 닫기
   };
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -108,9 +120,7 @@ export function InputModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description && (
-            <DialogDescription>{description}</DialogDescription>
-          )}
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <Input
           value={value}
