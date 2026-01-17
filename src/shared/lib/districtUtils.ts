@@ -8,9 +8,9 @@ export function searchDistricts(query: string): District[] {
   const normalized = query.trim();
 
   // korean-search-utils의 isMatch를 사용하여 초성 검색 지원
-  return (districts as District[])
-    .filter((district) => isMatch(district, normalized))
-    .slice(0, 10);
+  return (districts as District[]).filter((district) =>
+    isMatch(district, normalized),
+  );
 }
 
 export function formatDistrict(district: string): string {

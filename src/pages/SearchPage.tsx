@@ -31,7 +31,7 @@ export function SearchPage() {
   } = useSearch();
   const [showResults, setShowResults] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
-    null
+    null,
   );
   const [viewMode, setViewMode] = useState<ViewMode>("weather");
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
@@ -71,7 +71,7 @@ export function SearchPage() {
       dragStartY.current = clientY;
       dragStartHeight.current = panelHeightVh;
     },
-    [panelHeightVh]
+    [panelHeightVh],
   );
 
   const handleDragMove = useCallback(
@@ -82,11 +82,11 @@ export function SearchPage() {
       const deltaVh = (deltaY / window.innerHeight) * 100;
       const newHeight = Math.min(
         85,
-        Math.max(20, dragStartHeight.current + deltaVh)
+        Math.max(20, dragStartHeight.current + deltaVh),
       );
       setPanelHeightVh(newHeight);
     },
-    [isDragging]
+    [isDragging],
   );
 
   const handleDragEnd = useCallback(() => {
@@ -106,14 +106,14 @@ export function SearchPage() {
     (e: React.TouchEvent) => {
       handleDragStart(e.touches[0].clientY);
     },
-    [handleDragStart]
+    [handleDragStart],
   );
 
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
       handleDragMove(e.touches[0].clientY);
     },
-    [handleDragMove]
+    [handleDragMove],
   );
 
   const handleTouchEnd = useCallback(() => {
@@ -126,7 +126,7 @@ export function SearchPage() {
       e.preventDefault();
       handleDragStart(e.clientY);
     },
-    [handleDragStart]
+    [handleDragStart],
   );
 
   useEffect(() => {
@@ -188,13 +188,13 @@ export function SearchPage() {
     useHourlyForecast(
       mapLocation?.lat ?? 0,
       mapLocation?.lon ?? 0,
-      !!mapLocation
+      !!mapLocation,
     );
 
   const { data: clinics = [], isLoading: isClinicsLoading } = useClinics(
     mapLocation?.lat ?? 0,
     mapLocation?.lon ?? 0,
-    !!mapLocation
+    !!mapLocation,
   );
 
   const handleSelectResult = async (item: SearchResultItem) => {
@@ -385,13 +385,79 @@ export function SearchPage() {
     return false;
   };
 
+  // 커맨드 검색 결과에서 즐겨찾기 토글
+  const handleCommandFavoriteToggle = async (
+    item: SearchResultItem,
+    isCurrentlyFavorite: boolean,
+  ) => {
+    if (isCurrentlyFavorite) {
+      // 즐겨찾기 해제
+      if (item.type === "favorite") {
+        const location = item.data as Location;
+        const fav = getFavorite(location.id);
+        if (fav) {
+          setConfirmModal({
+            isOpen: true,
+            favoriteId: fav.id,
+            nickname: fav.nickname,
+          });
+        }
+      } else if (item.type === "place") {
+        const place = item.data as KakaoPlace;
+        const fav = getFavorite(place.id);
+        if (fav) {
+          setConfirmModal({
+            isOpen: true,
+            favoriteId: fav.id,
+            nickname: fav.nickname,
+          });
+        }
+      }
+    } else {
+      // 즐겨찾기 추가
+      if (favorites.length >= 6) {
+        setLimitModal(true);
+        return;
+      }
+
+      let location: Location | null = null;
+
+      if (item.type === "place") {
+        const place = item.data as KakaoPlace;
+        location = {
+          id: place.id,
+          name: place.place_name,
+          address: place.address_name || place.road_address_name,
+          lat: parseFloat(place.y),
+          lon: parseFloat(place.x),
+        };
+      } else if (item.type === "district") {
+        const places = await kakaoApi.searchPlace(item.data as District);
+        if (places.length > 0) {
+          const place = places[0];
+          location = {
+            id: place.id,
+            name: item.data as District,
+            address: place.address_name || (item.data as District),
+            lat: parseFloat(place.y),
+            lon: parseFloat(place.x),
+          };
+        }
+      }
+
+      if (location) {
+        setInputModal({ isOpen: true, location });
+      }
+    }
+  };
+
   const isDataLoading =
     isWeatherLoading || isForecastLoading || isClinicsLoading;
 
   const isLocationFavorite = Boolean(
     mapLocation &&
-      mapLocation.id !== "current-location" &&
-      isFavorite(mapLocation.id)
+    mapLocation.id !== "current-location" &&
+    isFavorite(mapLocation.id),
   );
 
   return (
@@ -415,6 +481,7 @@ export function SearchPage() {
             showResults={showResults && !!searchQuery && tabMode === "search"}
             results={results}
             onSelectResult={handleSelectResult}
+            onToggleFavorite={handleCommandFavoriteToggle}
             tabMode={tabMode}
             onTabChange={setTabMode}
             favoritesCount={favorites.length}

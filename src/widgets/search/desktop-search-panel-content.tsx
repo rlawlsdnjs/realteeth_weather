@@ -1,6 +1,5 @@
 import { Loader2, Star, Search as SearchIcon } from "lucide-react";
 import { WeatherCard } from "../weather/weather-card";
-import { HourlyForecastCard } from "../weather/hourly-forecast-card";
 import { ClinicList } from "../clinic/clinic-list";
 import { ClinicDetail } from "../clinic/clinic-detail";
 import { FavoriteCard } from "../favorites/favorite-card";
@@ -111,9 +110,11 @@ export function DesktopSearchPanelContent({
                     </div>
                   )}
 
-                  {weatherData && <WeatherCard weather={weatherData} />}
-                  {forecastData && (
-                    <HourlyForecastCard forecasts={forecastData.list} />
+                  {weatherData && (
+                    <WeatherCard
+                      weather={weatherData}
+                      forecasts={forecastData?.list}
+                    />
                   )}
                   {!isClinicsLoading && (
                     <ClinicList

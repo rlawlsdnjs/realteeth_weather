@@ -12,6 +12,7 @@ interface DesktopSearchPanelHeaderProps {
   onSearch: () => void;
   onClear: () => void;
   onSelectResult: (item: SearchResultItem) => void;
+  onToggleFavorite?: (item: SearchResultItem, isFavorite: boolean) => void;
   onTabChange: (tab: "search" | "favorites") => void;
 }
 
@@ -25,6 +26,7 @@ export function DesktopSearchPanelHeader({
   onSearch,
   onClear,
   onSelectResult,
+  onToggleFavorite,
   onTabChange,
 }: DesktopSearchPanelHeaderProps) {
   return (
@@ -63,6 +65,7 @@ export function DesktopSearchPanelHeader({
             <DesktopSearchCommand
               results={results}
               onSelectResult={onSelectResult}
+              onToggleFavorite={onToggleFavorite}
             />
           )}
         </div>

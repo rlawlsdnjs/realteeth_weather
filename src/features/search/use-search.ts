@@ -29,7 +29,7 @@ export function useSearch() {
       (fav) =>
         isMatch(fav.nickname, query) ||
         isMatch(fav.location.name, query) ||
-        isMatch(fav.location.address, query)
+        isMatch(fav.location.address, query),
     );
   }, [searchQuery, favorites]);
 
@@ -57,8 +57,8 @@ export function useSearch() {
   const combinedResults = useMemo((): SearchResultItem[] => {
     const results: SearchResultItem[] = [];
 
-    // 즐겨찾기 결과 추가 (별칭으로 검색 가능)
-    favoriteResults.slice(0, 3).forEach((fav) => {
+    // 즐겨찾기 결과 추가 (별칭으로 검색 가능) - 제한 없음
+    favoriteResults.forEach((fav) => {
       results.push({
         type: "favorite",
         data: fav.location,
@@ -66,13 +66,13 @@ export function useSearch() {
       });
     });
 
-    // 로컬 결과 추가
-    localResults.slice(0, 5).forEach((district: District) => {
+    // 로컬 결과 추가 - 제한 없음
+    localResults.forEach((district: District) => {
       results.push({ type: "district", data: district });
     });
 
-    // Kakao 결과 추가
-    kakaoResults.slice(0, 10).forEach((place: KakaoPlace) => {
+    // Kakao 결과 추가 - 제한 없음
+    kakaoResults.forEach((place: KakaoPlace) => {
       results.push({ type: "place", data: place });
     });
 
