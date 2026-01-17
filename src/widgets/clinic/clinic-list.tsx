@@ -1,9 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../shared/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../../shared/ui/card";
 import { MapPin, Phone, Navigation, ChevronRight } from "lucide-react";
 import type { Clinic } from "../../shared/types";
 
@@ -34,11 +29,11 @@ export function ClinicList({ clinics, onClinicClick }: ClinicListProps) {
             <button
               key={clinic.id}
               onClick={() => onClinicClick?.(clinic)}
-              className="w-full text-left p-4 rounded-lg border hover:bg-accent hover:border-primary/50 transition-all cursor-pointer group"
+              className="w-full p-4 text-left transition-all border rounded-lg cursor-pointer hover:bg-accent hover:border-primary/50 group"
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">
+                  <h3 className="mb-2 font-semibold transition-colors group-hover:text-primary">
                     {clinic.name}
                   </h3>
 
@@ -50,20 +45,20 @@ export function ClinicList({ clinics, onClinicClick }: ClinicListProps) {
 
                     {clinic.phone && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Phone className="h-4 w-4 shrink-0" />
+                        <Phone className="w-4 h-4 shrink-0" />
                         <span>{clinic.phone}</span>
                       </div>
                     )}
 
                     <div className="flex items-center gap-2 text-sm">
-                      <Navigation className="h-4 w-4 shrink-0 text-primary" />
+                      <Navigation className="w-4 h-4 shrink-0 text-primary" />
                       <span className="font-medium text-primary">
                         {clinic.distance}m
                       </span>
                     </div>
                   </div>
                 </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-2" />
+                <ChevronRight className="w-5 h-5 mt-2 transition-colors text-muted-foreground group-hover:text-primary shrink-0" />
               </div>
             </button>
           ))}

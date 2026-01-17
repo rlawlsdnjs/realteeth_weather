@@ -49,7 +49,7 @@ interface KakaoMaps {
   LatLng: new (lat: number, lng: number) => KakaoLatLng;
   Map: new (
     container: HTMLElement,
-    options: { center: KakaoLatLng; level: number }
+    options: { center: KakaoLatLng; level: number },
   ) => KakaoMap;
   Marker: new (options: {
     position: KakaoLatLng;
@@ -63,7 +63,7 @@ interface KakaoMaps {
     addListener(
       target: KakaoMarker | KakaoMap,
       type: string,
-      handler: () => void
+      handler: () => void,
     ): void;
   };
 }
@@ -148,7 +148,7 @@ export function KakaoMap({
 
       let centerLatLng = new window.kakao.maps.LatLng(
         location.lat,
-        location.lon
+        location.lon,
       );
 
       if (isMobile && (bottomPadding > 0 || topPaddingPx > 0)) {
@@ -183,7 +183,7 @@ export function KakaoMap({
         map,
         image: new window.kakao.maps.MarkerImage(
           "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
-          new window.kakao.maps.Size(30, 35)
+          new window.kakao.maps.Size(30, 35),
         ),
       });
 
@@ -251,7 +251,7 @@ export function KakaoMap({
 
       {/* 모바일 컨트롤 (가로 정렬) */}
       <div className="md:hidden absolute top-16 right-3 flex gap-2 z-[1000]">
-        <div className="flex bg-white/90 border border-slate-200 rounded-lg shadow">
+        <div className="flex border rounded-lg shadow bg-white/90 border-slate-200">
           <button
             onClick={handleZoomIn}
             className="p-2 border-r border-slate-200"
@@ -266,7 +266,7 @@ export function KakaoMap({
         <button
           onClick={onCurrentLocationClick}
           disabled={isGeoLoading}
-          className="p-2 bg-white/90 border border-slate-200 rounded-lg shadow"
+          className="p-2 border rounded-lg shadow bg-white/90 border-slate-200"
         >
           {isGeoLoading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -278,7 +278,7 @@ export function KakaoMap({
 
       {/* 데스크톱 컨트롤 (세로 정렬, 우측 하단) */}
       <div className="hidden md:flex absolute bottom-6 right-6 flex-col gap-2 z-[1000]">
-        <div className="flex flex-col bg-white/90 border border-slate-200 rounded-lg shadow">
+        <div className="flex flex-col border rounded-lg shadow bg-white/90 border-slate-200">
           <button
             onClick={handleZoomIn}
             className="p-2 border-b border-slate-200"
@@ -292,7 +292,7 @@ export function KakaoMap({
         <button
           onClick={onCurrentLocationClick}
           disabled={isGeoLoading}
-          className="p-2 bg-white/90 border border-slate-200 rounded-lg shadow hover:bg-white disabled:opacity-50"
+          className="p-2 border rounded-lg shadow bg-white/90 border-slate-200 hover:bg-white disabled:opacity-50"
         >
           {isGeoLoading ? (
             <Loader2 className="w-4 h-4 animate-spin" />

@@ -1,6 +1,5 @@
 import { Star, Loader2 } from "lucide-react";
 import { WeatherCard } from "../weather/weather-card";
-import { HourlyForecastCard } from "../weather/hourly-forecast-card";
 import { ClinicList } from "../clinic/clinic-list";
 import { ClinicDetail } from "../clinic/clinic-detail";
 import type {
@@ -135,9 +134,11 @@ export function MobileInfoPanel({
                 </div>
               )}
 
-              {weatherData && <WeatherCard weather={weatherData} />}
-              {forecastData && (
-                <HourlyForecastCard forecasts={forecastData.list} />
+              {weatherData && (
+                <WeatherCard
+                  weather={weatherData}
+                  forecasts={forecastData?.list}
+                />
               )}
               {!isClinicsLoading && (
                 <ClinicList clinics={clinics} onClinicClick={onClinicClick} />

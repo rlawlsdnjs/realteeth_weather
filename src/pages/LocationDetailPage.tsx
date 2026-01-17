@@ -4,10 +4,8 @@ import { Button } from "../shared/ui/button";
 import { Spinner } from "../shared/ui/spinner";
 import { ErrorFallback } from "../shared/ui/error-fallback";
 import { WeatherCard } from "../widgets/weather/weather-card";
-import { HourlyForecastCard } from "../widgets/weather/hourly-forecast-card";
 import { WeatherMessage } from "../widgets/weather/weather-message";
 import { ClinicList } from "../widgets/clinic/clinic-list";
-import { KakaoMap } from "../widgets/map/kakao-map";
 import { useWeather, useHourlyForecast } from "../features/weather/use-weather";
 import { useClinics } from "../features/clinic/use-clinics";
 import { useFavoritesStore } from "../shared/store/useFavoritesStore";
@@ -34,13 +32,13 @@ export function LocationDetailPage() {
   const { data: forecast, isLoading: forecastLoading } = useHourlyForecast(
     location?.lat ?? 0,
     location?.lon ?? 0,
-    !!location
+    !!location,
   );
 
   const { data: clinics = [], isLoading: clinicsLoading } = useClinics(
     location?.lat ?? 0,
     location?.lon ?? 0,
-    !!location
+    !!location,
   );
 
   if (!location) {
@@ -78,8 +76,8 @@ export function LocationDetailPage() {
   const isCurrentlyFavorite = isFavorite(location.id);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+    <div className="flex flex-col max-h-full min-h-screen bg-background">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shrink-0">
         <div className="flex items-center justify-between max-w-4xl px-4 py-4 mx-auto">
           <Button variant="ghost" onClick={() => navigate("/")}>
             <ArrowLeft className="w-5 h-5 mr-2" />
@@ -99,7 +97,7 @@ export function LocationDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl p-4 mx-auto space-y-6 md:p-8">
+      <div className="flex-1 max-w-4xl p-4 mx-auto space-y-6 overflow-y-auto md:p-8">
         <div>
           <h1 className="mb-2 text-3xl font-bold">{location.name}</h1>
           <p className="text-muted-foreground">{location.address}</p>
@@ -112,24 +110,17 @@ export function LocationDetailPage() {
         ) : weather ? (
           <>
             <WeatherMessage weather={weather} />
-            <WeatherCard weather={weather} />
+            <WeatherCard
+              weather={weather}
+              forecasts={forecast?.list}
+              showDetails={true}
+            />
           </>
         ) : (
           <p className="py-8 text-center text-muted-foreground">
             해당 장소의 날씨 정보가 제공되지 않습니다.
           </p>
         )}
-
-        {forecastLoading ? (
-          <Spinner size="sm" />
-        ) : forecast && forecast.list.length > 0 ? (
-          <HourlyForecastCard forecasts={forecast.list} />
-        ) : null}
-
-        <div>
-          <h2 className="mb-4 text-2xl font-bold">지도</h2>
-          <KakaoMap location={location} clinics={clinics} />
-        </div>
 
         <div>
           <h2 className="mb-4 text-2xl font-bold">주변 치과</h2>
