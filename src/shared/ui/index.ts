@@ -59,3 +59,4 @@ export {
   FavoriteCardSkeleton,
 } from "./weather-skeleton";
 export { FavoriteToggleButton, FavoriteIcon } from "./favorite-button";
+export { ToothIcon, toothIconSvg } from "./icons/tooth-icon";

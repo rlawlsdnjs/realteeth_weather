@@ -55,7 +55,7 @@ export function DesktopSearchPanelHeader({
       <div className="flex bg-white border-b">
         <button
           onClick={() => onTabChange("search")}
-          className={`flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+          className={`flex-1 cursor-pointer py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
             tabMode === "search"
               ? "text-primary border-b-2 border-primary"
               : "text-muted-foreground hover:text-foreground"
@@ -66,7 +66,7 @@ export function DesktopSearchPanelHeader({
         </button>
         <button
           onClick={() => onTabChange("favorites")}
-          className={`flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative ${
+          className={`flex-1 cursor-pointer py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative ${
             tabMode === "favorites"
               ? "text-primary border-b-2 border-primary"
               : "text-muted-foreground hover:text-foreground"

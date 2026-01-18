@@ -84,7 +84,7 @@ export function DesktopSearchPanelContent({
                       <FavoriteToggleButton
                         isFavorite={isLocationFavorite}
                         onClick={onToggleFavorite}
-                        size="lg"
+                        size="xl"
                       />
                     </div>
                   </div>
@@ -147,7 +147,7 @@ export function DesktopSearchPanelContent({
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="mb-2 text-xs text-muted-foreground">
+              <p className="mb-4 text-xs text-muted-foreground">
                 최대 6개까지 저장 가능 ({favorites.length}/6)
               </p>
               {favorites.map((favorite) => (

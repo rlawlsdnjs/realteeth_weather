@@ -32,7 +32,7 @@ export function FavoriteToggleButton({
     <button
       onClick={onClick}
       className={cn(
-        "transition-colors rounded-full shrink-0",
+        "transition-colors rounded-full shrink-0 cursor-pointer",
         showBackground && "hover:bg-slate-100",
         buttonSizeMap[size],
         className,

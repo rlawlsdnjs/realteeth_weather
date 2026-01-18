@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { MapPin, Building, Star, X, Search } from "lucide-react";
+import { MapPin, Building, X, Search } from "lucide-react";
 import {
   Command,
   CommandGroup,
   CommandItem,
   CommandList,
+  FavoriteToggleButton,
 } from "../../shared/ui";
 import { useFavoritesStore } from "../../shared/store/useFavoritesStore";
 import type { SearchResultItem } from "../../features/search/search-results";
@@ -224,8 +225,7 @@ export function DesktopSearchBox({
                     key={`fav-${location.id}-${i}`}
                     onSelect={() => handleSelect(item)}
                   >
-                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                    <div className="min-w-0 ml-2">
+                    <div className="flex-1 min-w-0 ml-2">
                       <div className="font-medium truncate">
                         {item.favoriteNickname || location.name}
                       </div>
@@ -233,6 +233,13 @@ export function DesktopSearchBox({
                         {location.address}
                       </div>
                     </div>
+                    {onToggleFavorite && (
+                      <FavoriteToggleButton
+                        isFavorite={true}
+                        onClick={(e) => handleStarClick(e, item)}
+                        size="sm"
+                      />
+                    )}
                   </CommandItem>
                 );
               })}
@@ -252,7 +259,7 @@ export function DesktopSearchBox({
                       key={`place-${place.id}-${i}`}
                       onSelect={() => handleSelect(item)}
                     >
-                      <Building className="w-4 h-4 opacity-60" />
+                      <Building className="w-4 h-4 opacity-60 shrink-0" />
                       <div className="flex-1 min-w-0 ml-2">
                         <div className="font-medium truncate">
                           {place.place_name}
@@ -262,18 +269,11 @@ export function DesktopSearchBox({
                         </div>
                       </div>
                       {onToggleFavorite && (
-                        <button
+                        <FavoriteToggleButton
+                          isFavorite={isFav}
                           onClick={(e) => handleStarClick(e, item)}
-                          className="p-1 rounded hover:bg-slate-100"
-                        >
-                          <Star
-                            className={`w-4 h-4 ${
-                              isFav
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "opacity-50"
-                            }`}
-                          />
-                        </button>
+                          size="sm"
+                        />
                       )}
                     </CommandItem>
                   );
@@ -285,8 +285,8 @@ export function DesktopSearchBox({
                     key={`district-${item.data}-${i}`}
                     onSelect={() => handleSelect(item)}
                   >
-                    <MapPin className="w-4 h-4 opacity-60" />
-                    <span className="ml-2 font-medium truncate">
+                    <MapPin className="w-4 h-4 opacity-60 shrink-0" />
+                    <span className="flex-1 ml-2 font-medium truncate">
                       {item.data as District}
                     </span>
                   </CommandItem>

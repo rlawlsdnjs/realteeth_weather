@@ -117,14 +117,18 @@ export function LocationDetailPage() {
     <div className="flex flex-col max-h-full min-h-screen bg-background">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shrink-0">
         <div className="flex items-center justify-between max-w-4xl px-4 py-4 mx-auto">
-          <Button variant="ghost" onClick={() => navigate("/")}>
+          <Button
+            variant="ghost"
+            className="gap-0 cursor-pointer"
+            onClick={() => navigate("/")}
+          >
             <ChevronLeft className="w-5 h-5 mr-2" />
             검색으로 돌아가기
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 max-w-4xl p-4 mx-auto space-y-6 overflow-y-auto md:p-8">
+      <div className="flex-1 w-full max-w-4xl p-4 mx-auto space-y-6 overflow-y-auto md:p-8">
         {selectedClinic ? (
           <ClinicDetail clinic={selectedClinic} onBack={handleBackFromClinic} />
         ) : (
