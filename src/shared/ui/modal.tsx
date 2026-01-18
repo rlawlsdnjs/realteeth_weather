@@ -18,7 +18,7 @@ import {
 } from "./dialog";
 import { Button } from "./button";
 import { Input } from "./input";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 // 확인 모달 (삭제 등 위험한 작업용)
 interface ConfirmModalProps {
@@ -95,21 +95,17 @@ export function InputModal({
 }: InputModalProps) {
   const [value, setValue] = useState(defaultValue);
 
-  // defaultValue가 변경되면 value도 업데이트
-  useEffect(() => {
-    if (open) {
-      setValue(defaultValue);
-    }
-  }, [defaultValue, open]);
-
   const handleConfirm = () => {
     onConfirm(value);
-    setValue("");
     onOpenChange(false); // 모달 닫기
   };
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
+      // 모달이 닫힐 때 값을 초기화
+      setValue(defaultValue);
+    } else {
+      // 모달이 열릴 때 defaultValue로 리셋
       setValue(defaultValue);
     }
     onOpenChange(newOpen);

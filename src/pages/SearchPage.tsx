@@ -30,7 +30,7 @@ export function SearchPage() {
     clearSearch,
     isLoading: isSearching,
   } = useSearch();
-  const [showResults, setShowResults] = useState(true);
+  const [, setShowResults] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null,
   );
@@ -158,9 +158,7 @@ export function SearchPage() {
 
   // 즐겨찾기 스토어
   const {
-    isFavorite,
     isFavoriteByAddress,
-    getFavorite,
     getFavoriteByAddress,
     addFavorite,
     removeFavorite,
@@ -191,12 +189,11 @@ export function SearchPage() {
     isError: isWeatherError,
   } = useWeather(mapLocation?.lat ?? 0, mapLocation?.lon ?? 0, !!mapLocation);
 
-  const { data: forecastData, isLoading: isForecastLoading } =
-    useHourlyForecast(
-      mapLocation?.lat ?? 0,
-      mapLocation?.lon ?? 0,
-      !!mapLocation,
-    );
+  const { data: forecastData } = useHourlyForecast(
+    mapLocation?.lat ?? 0,
+    mapLocation?.lon ?? 0,
+    !!mapLocation,
+  );
 
   const { data: clinics = [], isLoading: isClinicsLoading } = useClinics(
     mapLocation?.lat ?? 0,
@@ -475,9 +472,6 @@ export function SearchPage() {
     }
   };
 
-  const isDataLoading =
-    isWeatherLoading || isForecastLoading || isClinicsLoading;
-
   // 주소 기반으로 즐겨찾기 여부 확인 (현재 위치도 포함)
   const isLocationFavorite = Boolean(
     mapLocation &&
@@ -515,7 +509,6 @@ export function SearchPage() {
             currentLocationAddress={currentLocationAddress}
             isLocationFavorite={isLocationFavorite}
             onToggleFavorite={handleToggleFavorite}
-            isDataLoading={isDataLoading}
             isWeatherError={isWeatherError}
             isWeatherLoading={isWeatherLoading}
             weatherData={weatherData}
@@ -630,7 +623,6 @@ export function SearchPage() {
                 isLocationFavorite={isLocationFavorite}
                 onToggleFavorite={handleToggleFavorite}
                 viewMode={viewMode}
-                isDataLoading={isDataLoading}
                 isWeatherError={isWeatherError}
                 isWeatherLoading={isWeatherLoading}
                 weatherData={weatherData}

@@ -53,9 +53,9 @@ export {
 } from "./command";
 export { EmptyState } from "./empty-state";
 export { ErrorFallback } from "./error-fallback";
-export { Spinner } from "./spinner";
 export {
   WeatherSkeleton,
   ClinicListSkeleton,
   FavoriteCardSkeleton,
 } from "./weather-skeleton";
+export { FavoriteToggleButton, FavoriteIcon } from "./favorite-button";

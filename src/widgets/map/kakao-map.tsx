@@ -1,11 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
-import {
-  Plus,
-  Minus,
-  Navigation,
-  Loader2,
-  LocateFixedIcon,
-} from "lucide-react";
+import { Plus, Minus, Loader2, LocateFixedIcon } from "lucide-react";
 import type { Location, Clinic } from "../../shared/types";
 
 declare global {

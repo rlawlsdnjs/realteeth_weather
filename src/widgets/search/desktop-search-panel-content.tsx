@@ -1,4 +1,5 @@
-import { Star, Search as SearchIcon } from "lucide-react";
+import { Search as SearchIcon } from "lucide-react";
+import { FavoriteToggleButton, FavoriteIcon } from "../../shared/ui";
 import { WeatherCard } from "../weather/weather-card";
 import { ClinicList } from "../clinic/clinic-list";
 import { ClinicDetail } from "../clinic/clinic-detail";
@@ -19,7 +20,6 @@ interface DesktopSearchPanelContentProps {
   mapLocation: Location | null;
   currentLocationAddress: string;
   isLocationFavorite: boolean;
-  isDataLoading: boolean;
   isWeatherLoading: boolean;
   isWeatherError: boolean;
   isClinicsLoading: boolean;
@@ -40,7 +40,6 @@ export function DesktopSearchPanelContent({
   mapLocation,
   currentLocationAddress,
   isLocationFavorite,
-  isDataLoading,
   isWeatherLoading,
   isWeatherError,
   isClinicsLoading,
@@ -82,18 +81,11 @@ export function DesktopSearchPanelContent({
                             : mapLocation.address}
                         </p>
                       </div>
-                      <button
+                      <FavoriteToggleButton
+                        isFavorite={isLocationFavorite}
                         onClick={onToggleFavorite}
-                        className={`p-2 transition-all rounded-full shrink-0  hover:bg-slate-100`}
-                      >
-                        <Star
-                          className={`h-6 w-6 transition-colors ${
-                            isLocationFavorite
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-slate-400 hover:text-yellow-400"
-                          }`}
-                        />
-                      </button>
+                        size="lg"
+                      />
                     </div>
                   </div>
 
@@ -150,7 +142,7 @@ export function DesktopSearchPanelContent({
         <div className="h-full p-4 overflow-y-auto">
           {favorites.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-              <Star className="w-12 h-12 mb-4 opacity-20" />
+              <FavoriteIcon className="w-12 h-12 mb-4 opacity-20" />
               <p className="text-sm">아직 즐겨찾기가 없습니다</p>
             </div>
           ) : (

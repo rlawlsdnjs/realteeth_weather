@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { FavoriteToggleButton } from "../../shared/ui";
 import { WeatherCard } from "../weather/weather-card";
 import { ClinicList } from "../clinic/clinic-list";
 import { ClinicDetail } from "../clinic/clinic-detail";
@@ -20,7 +20,6 @@ interface MobileInfoPanelProps {
   mapLocation: Location;
   currentLocationAddress: string;
   isLocationFavorite: boolean;
-  isDataLoading: boolean;
   isWeatherLoading: boolean;
   isWeatherError: boolean;
   isClinicsLoading: boolean;
@@ -46,7 +45,6 @@ export function MobileInfoPanel({
   mapLocation,
   currentLocationAddress,
   isLocationFavorite,
-  isDataLoading,
   isWeatherLoading,
   isWeatherError,
   isClinicsLoading,
@@ -93,18 +91,11 @@ export function MobileInfoPanel({
                 : mapLocation.address}
             </p>
           </div>
-          <button
+          <FavoriteToggleButton
+            isFavorite={isLocationFavorite}
             onClick={onToggleFavorite}
-            className={`p-2 transition-all rounded-full shrink-0  hover:bg-slate-100`}
-          >
-            <Star
-              className={`h-6 w-6 transition-colors ${
-                isLocationFavorite
-                  ? "fill-yellow-400 text-yellow-400"
-                  : "text-slate-400 hover:text-yellow-400"
-              }`}
-            />
-          </button>
+            size="lg"
+          />
         </div>
       </div>
 

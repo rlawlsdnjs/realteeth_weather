@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronLeft, Star } from "lucide-react";
-import { Button } from "../shared/ui";
+import { ChevronLeft } from "lucide-react";
+import { Button, FavoriteToggleButton } from "../shared/ui";
 import { ErrorFallback } from "../shared/ui/error-fallback";
 import {
   WeatherSkeleton,
@@ -134,18 +134,11 @@ export function LocationDetailPage() {
                 <h1 className="mb-2 text-3xl font-bold">{location.name}</h1>
                 <p className="text-muted-foreground">{location.address}</p>
               </div>
-              <button
+              <FavoriteToggleButton
+                isFavorite={isCurrentlyFavorite}
                 onClick={handleToggleFavorite}
-                className="p-2 transition-colors rounded-full shrink-0 hover:bg-slate-100"
-              >
-                <Star
-                  className={`h-6 w-6 ${
-                    isCurrentlyFavorite
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "text-muted-foreground"
-                  }`}
-                />
-              </button>
+                size="lg"
+              />
             </div>
 
             {weatherLoading ? (

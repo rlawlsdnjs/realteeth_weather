@@ -15,7 +15,7 @@ export function WeatherMessage({ weather }: WeatherMessageProps) {
   return (
     <Card className="mb-0 border-blue-200 bg-blue-50">
       <CardContent className="flex gap-3 p-4">
-        <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
         <p className="text-sm text-blue-900">{message}</p>
       </CardContent>
     </Card>

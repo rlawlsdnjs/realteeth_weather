@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "../../shared/ui/card";
 import { Button } from "../../shared/ui/button";
 import { Badge } from "../../shared/ui/badge";
 import { ConfirmModal } from "../../shared/ui/modal";
+import { FavoriteIcon } from "../../shared/ui/favorite-button";
 import { useFavoritesStore } from "../../shared/store/useFavoritesStore";
 import { useWeather } from "../../features/weather/use-weather";
 
@@ -55,7 +56,7 @@ export function FavoriteCard({ favorite, onEditNickname }: FavoriteCardProps) {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center flex-1 min-w-0 gap-2">
-              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 shrink-0" />
+              <FavoriteIcon size="md" />
               <h3 className="font-semibold truncate">{favorite.nickname}</h3>
             </div>
             <div className="flex gap-1 shrink-0">
