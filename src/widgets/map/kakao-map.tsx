@@ -251,6 +251,17 @@ export function KakaoMap({
     <div className={`relative w-full h-full ${className}`}>
       <div ref={mapRef} className="w-full h-full" />
 
+      {/* 로고 (우측 상단) */}
+      <div className="absolute top-3 right-3 z-[1000]">
+        <div className="flex items-center justify-center w-10 h-10 overflow-hidden rounded-full shadow opacity-70 bg-white/90">
+          <img
+            src="/logo.png"
+            alt="RealTeeth"
+            className="object-cover w-full h-full"
+          />
+        </div>
+      </div>
+
       {/* 모바일 컨트롤 (가로 정렬) */}
       <div className="md:hidden absolute top-16 right-3 flex gap-2 z-[1000]">
         <div className="flex border rounded-lg shadow bg-white/90 border-slate-200">
