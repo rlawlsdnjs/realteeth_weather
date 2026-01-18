@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { isMatch } from "korean-search-utils";
+import { isMatch, getMatchStartIndex } from "korean-search-utils";
 import { kakaoApi } from "../../shared/api";
 import {
   searchDistricts,
@@ -53,26 +53,29 @@ export function useSearch() {
     }
   }, [searchQuery]);
 
-  // 검색 결과 통합 - 즐겨찾기 → 행정구역 → Kakao API 순
+  // 검색 결과 통합 - 매칭 우선순위 적용 (korean-search-utils 방식)
   const combinedResults = useMemo((): SearchResultItem[] => {
     const results: SearchResultItem[] = [];
-    const query = searchQuery.trim().toLowerCase();
+    const query = searchQuery.trim();
 
-    // 즐겨찾기는 항상 표시 (검색어 없으면 전체, 있으면 필터링)
+    // 즐겨찾기 결과 추가
     if (query) {
       // 검색어가 있으면 필터링된 즐겨찾기만
       favoriteResults.forEach((fav) => {
-        const nickname = fav.nickname.toLowerCase();
-        const name = fav.location.name.toLowerCase();
-        const address = fav.location.address.toLowerCase();
+        // 매칭 위치 계산 (별칭, 이름, 주소 중 가장 앞에서 매칭되는 위치)
+        const nicknameIndex = getMatchStartIndex(fav.nickname, query);
+        const nameIndex = getMatchStartIndex(fav.location.name, query);
+        const addressIndex = getMatchStartIndex(fav.location.address, query);
 
-        // 완전 일치 우선순위 계산
-        let priority = 103; // 즐겨찾기 기본값 (100대: 즐겨찾기)
-        if (nickname === query || name === query || address.includes(query)) {
-          priority = 101; // 즐겨찾기 완전 일치
-        } else if (nickname.startsWith(query) || name.startsWith(query)) {
-          priority = 102; // 즐겨찾기 시작 일치
-        }
+        const matchIndex = Math.min(
+          nicknameIndex >= 0 ? nicknameIndex : Infinity,
+          nameIndex >= 0 ? nameIndex : Infinity,
+          addressIndex >= 0 ? addressIndex : Infinity,
+        );
+
+        // 우선순위: 타입(100) + 매칭위치(0-99) + 길이(0-0.99)
+        const textLength = fav.nickname.length;
+        const priority = 100 + matchIndex + textLength * 0.01;
 
         results.push({
           type: "favorite",
@@ -88,42 +91,55 @@ export function useSearch() {
           type: "favorite",
           data: fav.location,
           favoriteNickname: fav.nickname,
-          priority: 100, // 즐겨찾기 최우선
+          priority: 100,
         });
       });
     }
 
-    // 검색어가 있을 때만 행정구역 결과 추가
+    // 행정구역 결과 추가
     if (query) {
       localResults.forEach((district: District) => {
-        const districtLower = district.toLowerCase();
-        let priority = 203; // 행정구역 기본값 (200대: 행정구역)
-        if (districtLower === query) {
-          priority = 201; // 행정구역 완전 일치
-        } else if (districtLower.startsWith(query)) {
-          priority = 202; // 행정구역 시작 일치
-        }
+        const matchIndex = getMatchStartIndex(district, query);
+        const textLength = district.length;
 
-        results.push({ type: "district", data: district, priority });
+        // 우선순위: 타입(200) + 매칭위치(0-99) + 길이(0-0.99)
+        const priority =
+          200 + (matchIndex >= 0 ? matchIndex : 99) + textLength * 0.01;
+
+        results.push({
+          type: "district",
+          data: district,
+          priority,
+        });
       });
     }
 
-    // Kakao API 결과 추가 (검색 실행 시에만)
-    if (submittedQuery) {
+    // Kakao API 결과 추가
+    if (submittedQuery && submittedQuery === query) {
       kakaoResults.forEach((place: KakaoPlace) => {
-        const placeName = place.place_name.toLowerCase();
-        const address = (
-          place.address_name || place.road_address_name
-        ).toLowerCase();
+        const nameIndex = getMatchStartIndex(place.place_name, query);
+        const addressIndex = getMatchStartIndex(
+          place.address_name || place.road_address_name,
+          query,
+        );
 
-        let priority = 303; // Kakao API 기본값 (300대: Kakao)
-        if (placeName === query || address.includes(query)) {
-          priority = 301; // Kakao 완전 일치
-        } else if (placeName.startsWith(query)) {
-          priority = 302; // Kakao 시작 일치
-        }
+        const matchIndex = Math.min(
+          nameIndex >= 0 ? nameIndex : Infinity,
+          addressIndex >= 0 ? addressIndex : Infinity,
+        );
 
-        results.push({ type: "place", data: place, priority });
+        const textLength = place.place_name.length;
+        // 우선순위: 타입(300) + 매칭위치(0-99) + 길이(0-0.99)
+        const priority =
+          300 +
+          (matchIndex >= 0 && matchIndex !== Infinity ? matchIndex : 99) +
+          textLength * 0.01;
+
+        results.push({
+          type: "place",
+          data: place,
+          priority,
+        });
       });
     }
 

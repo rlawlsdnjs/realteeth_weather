@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MapPin, Building, Star, X, Search } from "lucide-react";
 import {
   Command,
@@ -35,51 +35,71 @@ export function DesktopSearchBox({
 
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [open, setOpen] = useState(false);
+  const [resultsLength, setResultsLength] = useState(results.length);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
 
-  const observerTarget = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   /* ---------------- 결과 분리 ---------------- */
   const favs = results.filter((r) => r.type === "favorite");
   const nonFavs = results.filter((r) => r.type !== "favorite");
 
-  /* ---------------- 결과 키 (리마운트 트리거) ---------------- */
-  const resultsKey = useMemo(
-    () =>
-      results
-        .map((r) =>
-          r.type === "place"
-            ? (r.data as KakaoPlace).id
-            : r.type === "favorite"
-              ? (r.data as Location).id
-              : (r.data as string),
-        )
-        .join("-"),
-    [results],
-  );
-
   /* ---------------- 표시할 결과 ---------------- */
   const visibleNonFavItems = nonFavs.slice(0, visibleCount);
   const hasMore = visibleCount < nonFavs.length;
+  const totalVisibleItems = favs.length + visibleNonFavItems.length;
 
-  /* ---------------- 무한 스크롤 ---------------- */
+  /* ---------------- 결과가 변경되면 visibleCount 리셋 ---------------- */
+  if (results.length !== resultsLength) {
+    setResultsLength(results.length);
+    setVisibleCount(ITEMS_PER_PAGE);
+    setSelectedIndex(-1);
+  }
+
+  /* ---------------- 스크롤 기반 무한 스크롤 ---------------- */
   useEffect(() => {
+    if (!hasMore || !listRef.current) return;
+
+    const listElement = listRef.current;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = listElement;
+      // 하단에서 100px 이내에 도달하면 더 로드
+      if (scrollHeight - scrollTop - clientHeight < 100) {
+        setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
+      }
+    };
+
+    listElement.addEventListener("scroll", handleScroll);
+    return () => listElement.removeEventListener("scroll", handleScroll);
+  }, [hasMore]);
+
+  /* ---------------- 로드 더보기 트리거 (IntersectionObserver) ---------------- */
+  useEffect(() => {
+    if (!hasMore || !loadMoreRef.current || !listRef.current) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
+        if (entries[0]?.isIntersecting) {
           setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
         }
       },
-      { threshold: 0.1 },
+      { root: listRef.current, threshold: 0.1 },
     );
 
-    const target = observerTarget.current;
-    if (target) observer.observe(target);
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore]);
 
-    return () => {
-      if (target) observer.unobserve(target);
-    };
-  }, []);
+  /* ---------------- 키보드로 마지막 근처 도달 시 더 로드 ---------------- */
+  const handleLoadMoreOnKeyboard = (newIndex: number) => {
+    // 마지막 5개 아이템 근처에 도달하면 더 로드
+    if (hasMore && newIndex >= totalVisibleItems - 5) {
+      setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
+    }
+  };
 
   /* ---------------- 즐겨찾기 처리 ---------------- */
   const isItemFavorite = (item: SearchResultItem): boolean => {
@@ -128,26 +148,40 @@ export function DesktopSearchBox({
         setOpen(false);
         inputRef.current?.blur();
       }
-    } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    } else if (e.key === "ArrowDown") {
       setOpen(true);
+      const newIndex = Math.min(selectedIndex + 1, totalVisibleItems - 1);
+      setSelectedIndex(newIndex);
+      handleLoadMoreOnKeyboard(newIndex);
+    } else if (e.key === "ArrowUp") {
+      setOpen(true);
+      setSelectedIndex(Math.max(selectedIndex - 1, 0));
     }
   };
 
-  /* ---------------- Blur ---------------- */
-  const handleBlur = (e: React.FocusEvent) => {
-    const relatedTarget = e.relatedTarget as HTMLElement;
-    if (!relatedTarget || !e.currentTarget.contains(relatedTarget)) {
-      setTimeout(() => setOpen(false), 150);
+  /* ---------------- Command 키보드 핸들링 ---------------- */
+  const handleCommandKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      const newIndex = Math.min(selectedIndex + 1, totalVisibleItems - 1);
+      setSelectedIndex(newIndex);
+      handleLoadMoreOnKeyboard(newIndex);
+    } else if (e.key === "ArrowUp") {
+      setSelectedIndex(Math.max(selectedIndex - 1, 0));
     }
+  };
+
+  const handleBlur = () => {
+    // 잠시 대기 후 닫기 (클릭 이벤트가 발생할 시간 확보)
+    setTimeout(() => setOpen(false), 150);
   };
 
   return (
     <Command
-      key={resultsKey} // 🔥 결과 변경 시 전체 리마운트
       className="relative overflow-visible bg-white border rounded-lg"
       shouldFilter={false}
       loop
       onBlur={handleBlur}
+      onKeyDown={handleCommandKeyDown}
     >
       {/* 검색 입력 */}
       <div className="flex items-center px-3">
@@ -176,7 +210,10 @@ export function DesktopSearchBox({
 
       {/* 결과 리스트 */}
       {open && results.length > 0 && (
-        <CommandList className="absolute left-0 right-0 top-full z-[999] mt-1 max-h-[60vh] overflow-y-auto rounded-lg border bg-white shadow-lg">
+        <CommandList
+          ref={listRef}
+          className="absolute left-0 right-0 top-full z-999 mt-1 max-h-[60vh] overflow-y-auto rounded-lg border bg-white shadow-lg"
+        >
           {/* 즐겨찾기 */}
           {favs.length > 0 && (
             <CommandGroup heading="즐겨찾기">
@@ -220,11 +257,10 @@ export function DesktopSearchBox({
                         <div className="font-medium truncate">
                           {place.place_name}
                         </div>
-                        <div className="text-xs truncate opacity-60">
-                          {place.address_name}
+                        <div className="text-xs truncate text-muted-foreground">
+                          {place.address_name || place.road_address_name}
                         </div>
                       </div>
-
                       {onToggleFavorite && (
                         <button
                           onClick={(e) => handleStarClick(e, item)}
@@ -243,30 +279,27 @@ export function DesktopSearchBox({
                   );
                 }
 
-                if (item.type === "district") {
-                  return (
-                    <CommandItem
-                      key={`district-${item.data}-${i}`}
-                      onSelect={() => handleSelect(item)}
-                    >
-                      <MapPin className="w-4 h-4 opacity-60" />
-                      <span className="ml-2 font-medium truncate">
-                        {item.data as District}
-                      </span>
-                    </CommandItem>
-                  );
-                }
-
-                return null;
+                // district
+                return (
+                  <CommandItem
+                    key={`district-${item.data}-${i}`}
+                    onSelect={() => handleSelect(item)}
+                  >
+                    <MapPin className="w-4 h-4 opacity-60" />
+                    <span className="ml-2 font-medium truncate">
+                      {item.data as District}
+                    </span>
+                  </CommandItem>
+                );
               })}
             </CommandGroup>
           )}
 
           {/* 무한 스크롤 트리거 */}
           {hasMore && (
-            <div ref={observerTarget} className="py-2 text-center">
+            <div ref={loadMoreRef} className="py-2 text-center">
               <span className="text-xs text-muted-foreground">
-                스크롤하여 더보기…
+                더 불러오는 중...
               </span>
             </div>
           )}

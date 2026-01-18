@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search as SearchIcon, MapPin, ChevronLeft } from "lucide-react";
 import { SearchInput } from "../../features/search/search-input";
 import { MobileSearchResultItem } from "../../features/search/mobile-search-result-item";
@@ -6,7 +6,7 @@ import { FavoriteCard } from "../favorites/favorite-card";
 import { Skeleton } from "../../shared/ui/skeleton";
 import { FavoriteIcon } from "../../shared/ui/favorite-button";
 import type { SearchResultItem } from "../../features/search/search-results";
-import type { Location, Favorite, KakaoPlace } from "../../shared/types";
+import type { Location, Favorite } from "../../shared/types";
 
 interface MobileSearchModeProps {
   searchQuery: string;
@@ -52,50 +52,57 @@ export function MobileSearchMode({
   isSearching = false,
 }: MobileSearchModeProps) {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
-  const observerTarget = useRef<HTMLDivElement>(null);
+  const [resultsLength, setResultsLength] = useState(results.length);
+  const listRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  /* ---------------- 결과 키 (리마운트 트리거) ---------------- */
-  const resultsKey = useMemo(
-    () =>
-      results
-        .map((r) =>
-          r.type === "place"
-            ? (r.data as KakaoPlace).id
-            : r.type === "favorite"
-              ? (r.data as Location).id
-              : (r.data as string),
-        )
-        .join("-"),
-    [results],
-  );
+  /* ---------------- 결과가 변경되면 visibleCount 리셋 ---------------- */
+  if (results.length !== resultsLength) {
+    setResultsLength(results.length);
+    setVisibleCount(ITEMS_PER_PAGE);
+  }
 
-  /* ---------------- 무한 스크롤 ---------------- */
+  /* ---------------- 스크롤 기반 무한 스크롤 ---------------- */
+  const hasMore = visibleCount < results.length;
+
   useEffect(() => {
+    if (!hasMore || !listRef.current) return;
+
+    const listElement = listRef.current;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = listElement;
+      // 하단에서 100px 이내에 도달하면 더 로드
+      if (scrollHeight - scrollTop - clientHeight < 100) {
+        setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
+      }
+    };
+
+    listElement.addEventListener("scroll", handleScroll);
+    return () => listElement.removeEventListener("scroll", handleScroll);
+  }, [hasMore]);
+
+  /* ---------------- 로드 더보기 트리거 (IntersectionObserver) ---------------- */
+  useEffect(() => {
+    if (!hasMore || !loadMoreRef.current || !listRef.current) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
+        if (entries[0]?.isIntersecting) {
           setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
         }
       },
-      { threshold: 0.1 },
+      { root: listRef.current, threshold: 0.1 },
     );
 
-    const target = observerTarget.current;
-    if (target) observer.observe(target);
-
-    return () => {
-      if (target) observer.unobserve(target);
-    };
-  }, []);
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore]);
 
   const visibleResults = results.slice(0, visibleCount);
-  const hasMore = visibleCount < results.length;
 
   return (
-    <div
-      key={resultsKey} // 🔥 결과 변경 시 전체 리마운트
-      className="relative flex flex-col h-full bg-white"
-    >
+    <div className="relative flex flex-col h-full bg-white">
       {/* 검색창 헤더 */}
       <div className="flex items-center gap-2 p-3 bg-white border-b">
         <button
@@ -150,7 +157,7 @@ export function MobileSearchMode({
       </div>
 
       {/* 콘텐츠 */}
-      <div className="flex-1 overflow-y-auto bg-slate-50">
+      <div ref={listRef} className="flex-1 overflow-y-auto bg-slate-50">
         {tabMode === "search" ? (
           <>
             {/* 현재 위치 */}
@@ -189,7 +196,7 @@ export function MobileSearchMode({
               <div className="bg-white divide-y">
                 {visibleResults.map((item, index) => (
                   <MobileSearchResultItem
-                    key={`${resultsKey}-${index}`}
+                    key={`result-${index}`}
                     item={item}
                     onSelect={onSelectResult}
                     onToggleFavorite={onToggleFavorite}
@@ -198,9 +205,9 @@ export function MobileSearchMode({
                 ))}
 
                 {hasMore && (
-                  <div ref={observerTarget} className="py-4 text-center">
+                  <div ref={loadMoreRef} className="py-4 text-center">
                     <span className="text-xs text-slate-400">
-                      스크롤하여 더보기...
+                      더 불러오는 중...
                     </span>
                   </div>
                 )}
