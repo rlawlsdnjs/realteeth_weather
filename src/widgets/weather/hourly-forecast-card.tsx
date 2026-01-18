@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../../shared/ui/card";
 import { Clock } from "lucide-react";
 import type { HourlyForecast } from "../../shared/types";
-import { getWeatherIcon } from "../../shared/lib/weatherUtils";
+import { getWeatherIconInfo } from "../../shared/lib/weatherUtils";
 
 interface HourlyForecastCardProps {
   forecasts: HourlyForecast[];
@@ -23,7 +23,7 @@ export function HourlyForecastCard({ forecasts }: HourlyForecastCardProps) {
         <div className="flex gap-4 overflow-x-auto pb-2">
           {next24Hours.map((forecast, index) => {
             const time = new Date(forecast.dt * 1000);
-            const weatherIcon = getWeatherIcon(forecast.weather[0].id);
+            const { icon: Icon } = getWeatherIconInfo(forecast.weather[0].id);
 
             return (
               <div
@@ -33,7 +33,7 @@ export function HourlyForecastCard({ forecasts }: HourlyForecastCardProps) {
                 <p className="text-xs text-muted-foreground">
                   {time.getHours()}시
                 </p>
-                <span className="text-2xl">{weatherIcon}</span>
+                <Icon className="w-6 h-6" />
                 <p className="font-medium">{Math.round(forecast.main.temp)}°</p>
               </div>
             );
