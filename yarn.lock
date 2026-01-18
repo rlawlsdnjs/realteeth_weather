@@ -3794,14 +3794,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"korean-search-utils@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "korean-search-utils@npm:1.0.6"
+"korean-search-utils@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "korean-search-utils@npm:1.0.7"
   dependencies:
     tslib: "npm:^2.8.1"
   peerDependencies:
-    react: ^17.0.0 || ^18.0.0
-  checksum: 10c0/60c99b9a89e7ecc886020dc6a7a4d185107b8598e9bc1c41935c21e6b90e1c9057f6d3771e850a5949dc59276430744fd4adf468e7ecf5eba92858a41619874a
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/f0dc59d830574ad00f94221a8553116985b3c260e04c0992df34e4b53a423e2610a576698bbb0405587e0944e60c1c80e8ac3210ddb523ca2a50f789b2bacec4
   languageName: node
   linkType: hard
 
@@ -4686,7 +4686,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^7.0.1"
     eslint-plugin-react-refresh: "npm:^0.4.24"
     globals: "npm:^16.5.0"
-    korean-search-utils: "npm:^1.0.6"
+    korean-search-utils: "npm:^1.0.7"
     lucide-react: "npm:^0.562.0"
     postcss: "npm:^8.5.6"
     react: "npm:^18.3.1"
