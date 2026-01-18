@@ -13,7 +13,7 @@ export function WeatherMessage({ weather }: WeatherMessageProps) {
   const message = getWeatherMessage(weatherCode, temp);
 
   return (
-    <Card className="bg-blue-50 border-blue-200">
+    <Card className="mb-0 border-blue-200 bg-blue-50">
       <CardContent className="flex gap-3 p-4">
         <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-blue-900">{message}</p>

@@ -28,6 +28,7 @@ export function SearchPage() {
     results,
     convertToLocation,
     clearSearch,
+    isLoading: isSearching,
   } = useSearch();
   const [showResults, setShowResults] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
@@ -583,6 +584,7 @@ export function SearchPage() {
               setViewMode("weather");
             }}
             onEditNickname={handleEditNickname}
+            isSearching={isSearching}
           />
         ) : (
           /* 지도 + 패널 모드 */

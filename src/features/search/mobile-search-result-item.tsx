@@ -52,7 +52,7 @@ export function MobileSearchResultItem({
           className="flex items-center flex-1 min-w-0 gap-3 cursor-pointer"
         >
           <div className="p-2 bg-yellow-100 rounded-full">
-            <Star className="w-5 h-5 text-yellow-600 fill-yellow-400" />
+            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium truncate">{item.favoriteNickname}</p>

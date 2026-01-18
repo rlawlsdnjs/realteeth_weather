@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { MapPin, Building, Star, X, Search } from "lucide-react";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandItem,
   CommandList,
@@ -201,11 +200,6 @@ export function DesktopSearchBox({
                         <span className="font-medium truncate">
                           {item.favoriteNickname || location.name}
                         </span>
-                        {item.favoriteNickname && (
-                          <span className="text-xs truncate text-muted-foreground">
-                            {location.name}
-                          </span>
-                        )}
                       </div>
                       <span className="text-xs truncate text-muted-foreground">
                         {location.address}

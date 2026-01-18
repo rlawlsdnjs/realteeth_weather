@@ -1,5 +1,11 @@
 import { useEffect, useRef, useCallback } from "react";
-import { Plus, Minus, Navigation, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Minus,
+  Navigation,
+  Loader2,
+  LocateFixedIcon,
+} from "lucide-react";
 import type { Location, Clinic } from "../../shared/types";
 
 declare global {
@@ -158,7 +164,7 @@ export function KakaoMap({
         const screenHeight = window.innerHeight;
         const bottomPx = (screenHeight * bottomPadding) / 100;
 
-        // ⭐ 핵심 계산
+        //  상단 패딩과 하단 패딩의 중간 지점이 중심이 되도록 보정
         const offsetY = bottomPx / 2 - topPaddingPx / 2;
         point.y += offsetY;
 
@@ -175,16 +181,28 @@ export function KakaoMap({
 
       markersRef.current.push(mainMarker);
     }
-
+    const toothPinSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 48">
+        <path
+          d="M20 0C9 0 0 9 0 20c0 13 20 28 20 28s20-15 20-28C40 9 31 0 20 0z"
+          fill="#ff6f61"
+        />
+        <path
+          d="M20 10c-4 0-7 3-7 7 0 2.5 1 4 1.5 5.5.5 1.5.5 5.5 2.5 6.5 1.5.8 2.5-1 3-3 .5 2 1.5 3.8 3 3 2-1 2-5 2.5-6.5.5-1.5 1.5-3 1.5-5.5 0-4-3-7-7-7z"
+          fill="#fff"
+        />
+      </svg>
+      `;
+    const toothMarkerImage = new window.kakao.maps.MarkerImage(
+      `data:image/svg+xml;utf8,${encodeURIComponent(toothPinSvg)}`,
+      new window.kakao.maps.Size(34, 42), // ⬅ SVG 크기와 동일하게
+    );
     // 치과 마커
     clinics.forEach((clinic) => {
       const marker = new window.kakao.maps.Marker({
         position: new window.kakao.maps.LatLng(clinic.lat, clinic.lon),
         map,
-        image: new window.kakao.maps.MarkerImage(
-          "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
-          new window.kakao.maps.Size(30, 35),
-        ),
+        image: toothMarkerImage,
       });
 
       markersRef.current.push(marker);
@@ -271,7 +289,7 @@ export function KakaoMap({
           {isGeoLoading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <Navigation className="w-4 h-4" />
+            <LocateFixedIcon className="w-4 h-4" />
           )}
         </button>
       </div>
@@ -297,7 +315,7 @@ export function KakaoMap({
           {isGeoLoading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <Navigation className="w-4 h-4" />
+            <LocateFixedIcon className="w-4 h-4" />
           )}
         </button>
       </div>

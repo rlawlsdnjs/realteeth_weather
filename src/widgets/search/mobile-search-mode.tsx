@@ -1,9 +1,17 @@
-import { X, Search as SearchIcon, Star, MapPin } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import {
+  X,
+  Search as SearchIcon,
+  Star,
+  MapPin,
+  ChevronLeft,
+} from "lucide-react";
 import { SearchInput } from "../../features/search/search-input";
 import { MobileSearchResultItem } from "../../features/search/mobile-search-result-item";
 import { FavoriteCard } from "../favorites/favorite-card";
+import { Skeleton } from "../../shared/ui/skeleton";
 import type { SearchResultItem } from "../../features/search/search-results";
-import type { Location, Favorite } from "../../shared/types";
+import type { Location, Favorite, KakaoPlace } from "../../shared/types";
 
 interface MobileSearchModeProps {
   searchQuery: string;
@@ -23,7 +31,10 @@ interface MobileSearchModeProps {
   onSelectFavorite: (location: Location) => void;
   onEditNickname: (id: string, nickname: string) => void;
   isResultFavorite: (item: SearchResultItem) => boolean;
+  isSearching?: boolean;
 }
+
+const ITEMS_PER_PAGE = 20;
 
 export function MobileSearchMode({
   searchQuery,
@@ -43,7 +54,51 @@ export function MobileSearchMode({
   onSelectFavorite,
   onEditNickname,
   isResultFavorite,
+  isSearching = false,
 }: MobileSearchModeProps) {
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  // 결과가 변경되면 visibleCount 초기화
+  const resultsKey = results
+    .map((r) =>
+      r.type === "place"
+        ? (r.data as KakaoPlace).id
+        : r.type === "favorite"
+          ? (r.data as Location).id
+          : (r.data as string),
+    )
+    .join("-");
+
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [resultsKey]);
+
+  // 무한 스크롤 구현
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && results.length > visibleCount) {
+          setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [results.length, visibleCount]);
+
+  const visibleResults = results.slice(0, visibleCount);
+  const hasMore = visibleCount < results.length;
   return (
     <div className="relative flex flex-col h-full bg-white">
       {/* 검색창 헤더 */}
@@ -52,7 +107,7 @@ export function MobileSearchMode({
           onClick={onClose}
           className="p-2 -ml-1 rounded-lg hover:bg-slate-100"
         >
-          <X className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
         <div className="flex-1">
           <SearchInput
@@ -124,9 +179,22 @@ export function MobileSearchMode({
             )}
 
             {/* 검색 결과 */}
-            {searchQuery && results.length > 0 ? (
+            {isSearching ? (
+              <div className="p-4 space-y-3 bg-white">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3">
+                    <Skeleton className="w-5 h-5 rounded shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="w-3/4 h-5" />
+                      <Skeleton className="w-full h-4" />
+                    </div>
+                    <Skeleton className="w-5 h-5 rounded shrink-0" />
+                  </div>
+                ))}
+              </div>
+            ) : searchQuery && results.length > 0 ? (
               <div className="bg-white divide-y">
-                {results.map((item, index) => (
+                {visibleResults.map((item, index) => (
                   <MobileSearchResultItem
                     key={index}
                     item={item}
@@ -135,6 +203,13 @@ export function MobileSearchMode({
                     isFavorite={isResultFavorite(item)}
                   />
                 ))}
+                {hasMore && (
+                  <div ref={observerTarget} className="py-4 text-center">
+                    <span className="text-xs text-slate-400">
+                      스크롤하여 더보기...
+                    </span>
+                  </div>
+                )}
               </div>
             ) : searchQuery ? (
               <div className="flex flex-col items-center justify-center py-16 text-slate-500">

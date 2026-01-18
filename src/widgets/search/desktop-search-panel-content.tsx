@@ -84,11 +84,7 @@ export function DesktopSearchPanelContent({
                       </div>
                       <button
                         onClick={onToggleFavorite}
-                        className={`p-2 transition-all rounded-full shrink-0 ${
-                          isLocationFavorite
-                            ? "bg-yellow-100 hover:bg-yellow-200"
-                            : "hover:bg-slate-100"
-                        }`}
+                        className={`p-2 transition-all rounded-full shrink-0  hover:bg-slate-100`}
                       >
                         <Star
                           className={`h-6 w-6 transition-colors ${

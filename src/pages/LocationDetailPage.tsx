@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Star } from "lucide-react";
-import { Button } from "../shared/ui/button";
+import { ArrowLeft, ChevronLeft, Star } from "lucide-react";
+import { Button } from "../shared/ui";
 import { ErrorFallback } from "../shared/ui/error-fallback";
 import {
   WeatherSkeleton,
@@ -9,10 +10,12 @@ import {
 import { WeatherCard } from "../widgets/weather/weather-card";
 import { WeatherMessage } from "../widgets/weather/weather-message";
 import { ClinicList } from "../widgets/clinic/clinic-list";
+import { ClinicDetail } from "../widgets/clinic/clinic-detail";
 import { useWeather, useHourlyForecast } from "../features/weather/use-weather";
 import { useClinics } from "../features/clinic/use-clinics";
 import { useFavoritesStore } from "../shared/store/useFavoritesStore";
-import type { Location } from "../shared/types";
+import { ConfirmModal, InputModal, AlertModal } from "../shared/ui/modal";
+import type { Location, Clinic } from "../shared/types";
 
 export function LocationDetailPage() {
   const locationState = useLocation();
@@ -26,13 +29,22 @@ export function LocationDetailPage() {
   const isFavorite = useFavoritesStore((state) => state.isFavorite);
   const getFavorite = useFavoritesStore((state) => state.getFavorite);
 
+  // Modal 상태
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+
+  // 치과 상세 상태
+  const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
+
   const {
     data: weather,
     isLoading: weatherLoading,
     error: weatherError,
   } = useWeather(location?.lat ?? 0, location?.lon ?? 0, !!location);
 
-  const { data: forecast, isLoading: forecastLoading } = useHourlyForecast(
+  const { data: forecast } = useHourlyForecast(
     location?.lat ?? 0,
     location?.lon ?? 0,
     !!location,
@@ -57,90 +69,150 @@ export function LocationDetailPage() {
 
   const handleToggleFavorite = () => {
     if (isFavorite(location.id)) {
-      const fav = getFavorite(location.id);
-      if (
-        fav &&
-        confirm(`"${fav.nickname}"를 즐겨찾기에서 삭제하시겠습니까?`)
-      ) {
-        removeFavorite(fav.id);
-      }
+      setShowDeleteModal(true);
     } else {
       if (favorites.length >= 6) {
-        alert("즐겨찾기는 최대 6개까지 추가할 수 있습니다.");
+        setAlertMessage("즐겨찾기는 최대 6개까지 추가할 수 있습니다.");
+        setShowAlertModal(true);
         return;
       }
-      const nickname = prompt("즐겨찾기 별칭을 입력하세요", location.name);
-      if (nickname) {
-        addFavorite({ location, nickname });
-      }
+      setShowAddModal(true);
     }
   };
 
+  const handleConfirmDelete = () => {
+    const fav = getFavorite(location.id);
+    if (fav) {
+      removeFavorite(fav.id);
+    }
+    setShowDeleteModal(false);
+  };
+
+  const handleConfirmAdd = (nickname: string) => {
+    try {
+      addFavorite({ location, nickname });
+    } catch (error) {
+      setAlertMessage(
+        error instanceof Error
+          ? error.message
+          : "즐겨찾기 추가에 실패했습니다.",
+      );
+      setShowAlertModal(true);
+    }
+    setShowAddModal(false);
+  };
+
+  const handleClinicClick = (clinic: Clinic) => {
+    setSelectedClinic(clinic);
+  };
+
+  const handleBackFromClinic = () => {
+    setSelectedClinic(null);
+  };
+
   const isCurrentlyFavorite = isFavorite(location.id);
+  const currentFavorite = getFavorite(location.id);
 
   return (
     <div className="flex flex-col max-h-full min-h-screen bg-background">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shrink-0">
         <div className="flex items-center justify-between max-w-4xl px-4 py-4 mx-auto">
           <Button variant="ghost" onClick={() => navigate("/")}>
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ChevronLeft className="w-5 h-5 mr-2" />
             검색으로 돌아가기
-          </Button>
-          <Button
-            variant={isCurrentlyFavorite ? "default" : "outline"}
-            onClick={handleToggleFavorite}
-            className={
-              isCurrentlyFavorite
-                ? "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500"
-                : ""
-            }
-          >
-            <Star
-              className={`h-4 w-4 mr-2 ${
-                isCurrentlyFavorite
-                  ? "fill-white text-white"
-                  : "text-yellow-500"
-              }`}
-            />
-            {isCurrentlyFavorite ? "즐겨찾기 삭제" : "즐겨찾기 추가"}
           </Button>
         </div>
       </div>
 
       <div className="flex-1 max-w-4xl p-4 mx-auto space-y-6 overflow-y-auto md:p-8">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold">{location.name}</h1>
-          <p className="text-muted-foreground">{location.address}</p>
-        </div>
-
-        {weatherLoading ? (
-          <WeatherSkeleton />
-        ) : weatherError ? (
-          <ErrorFallback error={weatherError as Error} />
-        ) : weather ? (
-          <>
-            <WeatherMessage weather={weather} />
-            <WeatherCard
-              weather={weather}
-              forecasts={forecast?.list}
-              showDetails={true}
-            />
-          </>
+        {selectedClinic ? (
+          <ClinicDetail clinic={selectedClinic} onBack={handleBackFromClinic} />
         ) : (
-          <p className="py-8 text-center text-muted-foreground">
-            해당 장소의 날씨 정보가 제공되지 않습니다.
-          </p>
-        )}
+          <>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h1 className="mb-2 text-3xl font-bold">{location.name}</h1>
+                <p className="text-muted-foreground">{location.address}</p>
+              </div>
+              <button
+                onClick={handleToggleFavorite}
+                className="p-2 transition-colors rounded-full shrink-0 hover:bg-slate-100"
+              >
+                <Star
+                  className={`h-6 w-6 ${
+                    isCurrentlyFavorite
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-muted-foreground"
+                  }`}
+                />
+              </button>
+            </div>
 
-        <div>
-          <h2 className="mb-4 text-2xl font-bold">주변 치과</h2>
-          {clinicsLoading ? (
-            <ClinicListSkeleton />
-          ) : (
-            <ClinicList clinics={clinics} />
-          )}
-        </div>
+            {weatherLoading ? (
+              <WeatherSkeleton />
+            ) : weatherError ? (
+              <ErrorFallback error={weatherError as Error} />
+            ) : weather ? (
+              <>
+                <WeatherCard
+                  weather={weather}
+                  forecasts={forecast?.list}
+                  showDetails={true}
+                />
+                <WeatherMessage weather={weather} />
+              </>
+            ) : (
+              <p className="py-8 text-center text-muted-foreground">
+                해당 장소의 날씨 정보가 제공되지 않습니다.
+              </p>
+            )}
+
+            <div>
+              {clinicsLoading ? (
+                <ClinicListSkeleton />
+              ) : (
+                <ClinicList
+                  clinics={clinics}
+                  onClinicClick={handleClinicClick}
+                />
+              )}
+            </div>
+          </>
+        )}
       </div>
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmModal
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
+        title="즐겨찾기 삭제"
+        description={`"${currentFavorite?.nickname || location.name}"를 즐겨찾기에서 삭제하시겠습니까?`}
+        confirmText="삭제"
+        cancelText="취소"
+        onConfirm={handleConfirmDelete}
+        variant="destructive"
+      />
+
+      {/* 추가 입력 모달 */}
+      <InputModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        title="즐겨찾기 추가"
+        description="이 장소의 별칭을 입력하세요"
+        placeholder="별칭 입력"
+        defaultValue={location.name}
+        confirmText="추가"
+        cancelText="취소"
+        onConfirm={handleConfirmAdd}
+      />
+
+      {/* 알림 모달 */}
+      <AlertModal
+        open={showAlertModal}
+        onOpenChange={setShowAlertModal}
+        title="알림"
+        description={alertMessage}
+      />
     </div>
   );
 }

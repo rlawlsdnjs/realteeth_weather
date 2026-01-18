@@ -79,8 +79,8 @@ export function MobileInfoPanel({
       </div>
 
       {/* 패널 헤더 */}
-      <div className="px-4 pb-3 bg-white border-b">
-        <div className="flex items-start justify-between gap-2">
+      <div className="px-4 pb-3 bg-white">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-semibold truncate">
               {mapLocation.id === "current-location"
@@ -95,11 +95,7 @@ export function MobileInfoPanel({
           </div>
           <button
             onClick={onToggleFavorite}
-            className={`p-2 transition-all rounded-full shrink-0 ${
-              isLocationFavorite
-                ? "bg-yellow-100 hover:bg-yellow-200"
-                : "hover:bg-slate-100"
-            }`}
+            className={`p-2 transition-all rounded-full shrink-0  hover:bg-slate-100`}
           >
             <Star
               className={`h-6 w-6 transition-colors ${
@@ -125,28 +121,24 @@ export function MobileInfoPanel({
             }`}
           >
             <div className="pb-4 space-y-4">
-              {isDataLoading && (
-                <div className="space-y-4">
-                  <WeatherSkeleton />
-                  <ClinicListSkeleton />
-                </div>
-              )}
-
-              {!isWeatherLoading && isWeatherError && (
+              {isWeatherLoading ? (
+                <WeatherSkeleton />
+              ) : isWeatherError ? (
                 <div className="p-4 border border-red-200 rounded-lg bg-red-50">
                   <p className="text-sm text-center text-red-600">
                     날씨 정보를 불러올 수 없습니다.
                   </p>
                 </div>
-              )}
-
-              {weatherData && (
+              ) : weatherData ? (
                 <WeatherCard
                   weather={weatherData}
                   forecasts={forecastData?.list}
                 />
-              )}
-              {!isClinicsLoading && (
+              ) : null}
+
+              {isClinicsLoading ? (
+                <ClinicListSkeleton />
+              ) : (
                 <ClinicList clinics={clinics} onClinicClick={onClinicClick} />
               )}
             </div>

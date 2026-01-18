@@ -1,4 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../../shared/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../../shared/ui/card";
 import { MapPin, Phone, Navigation, ChevronRight } from "lucide-react";
 import { Skeleton } from "../../shared/ui/skeleton";
 import type { Clinic } from "../../shared/types";
@@ -15,20 +21,21 @@ export function ClinicList({
   isLoading = false,
 }: ClinicListProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>주변 치과{!isLoading && ` (${clinics.length}개)`}</CardTitle>
+    <Card className="px-0 border-0 shadow-none">
+      <CardHeader className="flex flex-row items-baseline justify-between px-0">
+        <CardTitle>주변 치과{!isLoading && ` ${clinics.length}개`}</CardTitle>
+        <CardDescription>1km 반경 이내</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-0">
         {isLoading ? (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="p-4 border rounded-lg">
-                <Skeleton className="h-6 w-3/4 mb-3" />
+                <Skeleton className="w-3/4 h-6 mb-3" />
                 <div className="space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="w-full h-4" />
+                  <Skeleton className="w-2/3 h-4" />
+                  <Skeleton className="w-1/3 h-4" />
                 </div>
               </div>
             ))}
