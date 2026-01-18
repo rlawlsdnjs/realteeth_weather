@@ -1,7 +1,11 @@
-import { Star, Loader2 } from "lucide-react";
+import { Star } from "lucide-react";
 import { WeatherCard } from "../weather/weather-card";
 import { ClinicList } from "../clinic/clinic-list";
 import { ClinicDetail } from "../clinic/clinic-detail";
+import {
+  WeatherSkeleton,
+  ClinicListSkeleton,
+} from "../../shared/ui/weather-skeleton";
 import type {
   Location,
   Clinic,
@@ -118,11 +122,9 @@ export function MobileInfoPanel({
           >
             <div className="pb-4 space-y-4">
               {isDataLoading && (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  <span className="ml-2 text-sm text-slate-500">
-                    데이터를 불러오는 중...
-                  </span>
+                <div className="space-y-4">
+                  <WeatherSkeleton />
+                  <ClinicListSkeleton />
                 </div>
               )}
 

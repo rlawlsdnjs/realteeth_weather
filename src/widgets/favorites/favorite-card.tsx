@@ -7,7 +7,7 @@ import { Badge } from "../../shared/ui/badge";
 import { ConfirmModal } from "../../shared/ui/modal";
 import { useFavoritesStore } from "../../shared/store/useFavoritesStore";
 import { useWeather } from "../../features/weather/use-weather";
-import { Spinner } from "../../shared/ui/spinner";
+
 import type { Favorite } from "../../shared/types";
 import { getWeatherIcon } from "../../shared/lib/weatherUtils";
 
@@ -23,7 +23,7 @@ export function FavoriteCard({ favorite, onEditNickname }: FavoriteCardProps) {
 
   const { data: weather, isLoading } = useWeather(
     favorite.location.lat,
-    favorite.location.lon
+    favorite.location.lon,
   );
 
   const handleCardClick = () => {
@@ -49,13 +49,13 @@ export function FavoriteCard({ favorite, onEditNickname }: FavoriteCardProps) {
   return (
     <>
       <Card
-        className="cursor-pointer hover:shadow-md transition-shadow bg-white"
+        className="transition-shadow bg-white cursor-pointer hover:shadow-md"
         onClick={handleCardClick}
       >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Star className="h-5 w-5 fill-yellow-400 text-yellow-400 shrink-0" />
+            <div className="flex items-center flex-1 min-w-0 gap-2">
+              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 shrink-0" />
               <h3 className="font-semibold truncate">{favorite.nickname}</h3>
             </div>
             <div className="flex gap-1 shrink-0">
@@ -63,28 +63,28 @@ export function FavoriteCard({ favorite, onEditNickname }: FavoriteCardProps) {
                 size="icon"
                 variant="ghost"
                 onClick={handleEdit}
-                className="h-8 w-8"
+                className="w-8 h-8"
               >
-                <Pencil className="h-4 w-4" />
+                <Pencil className="w-4 h-4" />
               </Button>
               <Button
                 size="icon"
                 variant="ghost"
                 onClick={handleRemove}
-                className="h-8 w-8 text-destructive hover:text-destructive"
+                className="w-8 h-8 text-destructive hover:text-destructive"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground truncate">
+          <p className="text-sm truncate text-muted-foreground">
             {favorite.location.address}
           </p>
         </CardHeader>
 
         <CardContent>
           {isLoading ? (
-            <Spinner size="sm" />
+            <div className="text-xs text-muted-foreground">...</div>
           ) : weather ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -100,11 +100,11 @@ export function FavoriteCard({ favorite, onEditNickname }: FavoriteCardProps) {
                   </p>
                 </div>
               </div>
-              <div className="text-right space-y-1">
+              <div className="space-y-1 text-right">
                 <Badge variant="secondary" className="text-xs">
                   최고 {Math.round(weather.main.temp_max)}°
                 </Badge>
-                <Badge variant="outline" className="text-xs block">
+                <Badge variant="outline" className="block text-xs">
                   최저 {Math.round(weather.main.temp_min)}°
                 </Badge>
               </div>

@@ -1,8 +1,11 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star } from "lucide-react";
 import { Button } from "../shared/ui/button";
-import { Spinner } from "../shared/ui/spinner";
 import { ErrorFallback } from "../shared/ui/error-fallback";
+import {
+  WeatherSkeleton,
+  ClinicListSkeleton,
+} from "../shared/ui/weather-skeleton";
 import { WeatherCard } from "../widgets/weather/weather-card";
 import { WeatherMessage } from "../widgets/weather/weather-message";
 import { ClinicList } from "../widgets/clinic/clinic-list";
@@ -104,7 +107,7 @@ export function LocationDetailPage() {
         </div>
 
         {weatherLoading ? (
-          <Spinner />
+          <WeatherSkeleton />
         ) : weatherError ? (
           <ErrorFallback error={weatherError as Error} />
         ) : weather ? (
@@ -124,7 +127,11 @@ export function LocationDetailPage() {
 
         <div>
           <h2 className="mb-4 text-2xl font-bold">주변 치과</h2>
-          {clinicsLoading ? <Spinner /> : <ClinicList clinics={clinics} />}
+          {clinicsLoading ? (
+            <ClinicListSkeleton />
+          ) : (
+            <ClinicList clinics={clinics} />
+          )}
         </div>
       </div>
     </div>

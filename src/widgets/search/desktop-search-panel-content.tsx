@@ -1,8 +1,10 @@
-import { Loader2, Star, Search as SearchIcon } from "lucide-react";
+import { Star, Search as SearchIcon } from "lucide-react";
 import { WeatherCard } from "../weather/weather-card";
 import { ClinicList } from "../clinic/clinic-list";
 import { ClinicDetail } from "../clinic/clinic-detail";
 import { FavoriteCard } from "../favorites/favorite-card";
+import { WeatherSkeleton } from "../../shared/ui/weather-skeleton";
+import { Skeleton } from "../../shared/ui/skeleton";
 import type {
   Location,
   Clinic,
@@ -74,7 +76,9 @@ export function DesktopSearchPanelContent({
                         </h2>
                         <p className="text-sm text-muted-foreground">
                           {mapLocation.id === "current-location"
-                            ? currentLocationAddress || "주소를 불러오는 중..."
+                            ? currentLocationAddress || (
+                                <Skeleton className="w-48 h-4" />
+                              )
                             : mapLocation.address}
                         </p>
                       </div>
@@ -93,35 +97,26 @@ export function DesktopSearchPanelContent({
                     </div>
                   </div>
 
-                  {isDataLoading && (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                      <span className="ml-2 text-sm text-muted-foreground">
-                        데이터를 불러오는 중...
-                      </span>
-                    </div>
-                  )}
-
-                  {!isWeatherLoading && isWeatherError && (
+                  {isWeatherLoading ? (
+                    <WeatherSkeleton />
+                  ) : isWeatherError ? (
                     <div className="p-4 border rounded-lg bg-destructive/10 border-destructive/20">
                       <p className="text-sm text-center text-destructive">
                         해당 장소의 정보가 제공되지 않습니다.
                       </p>
                     </div>
-                  )}
-
-                  {weatherData && (
+                  ) : weatherData ? (
                     <WeatherCard
                       weather={weatherData}
                       forecasts={forecastData?.list}
                     />
-                  )}
-                  {!isClinicsLoading && (
-                    <ClinicList
-                      clinics={clinics}
-                      onClinicClick={onClinicClick}
-                    />
-                  )}
+                  ) : null}
+
+                  <ClinicList
+                    clinics={clinics}
+                    onClinicClick={onClinicClick}
+                    isLoading={isClinicsLoading}
+                  />
                 </div>
               </div>
 
