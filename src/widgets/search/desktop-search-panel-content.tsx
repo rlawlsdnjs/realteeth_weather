@@ -84,7 +84,7 @@ export function DesktopSearchPanelContent({
                       <FavoriteToggleButton
                         isFavorite={isLocationFavorite}
                         onClick={onToggleFavorite}
-                        size="xl"
+                        size="lg"
                       />
                     </div>
                   </div>

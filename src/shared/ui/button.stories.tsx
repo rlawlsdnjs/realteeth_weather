@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Button } from "./button";
-import { Star, Search, ArrowRight } from "lucide-react";
+import { Star, Search } from "lucide-react";
 
 const meta: Meta<typeof Button> = {
   title: "Shared/UI/Button",
@@ -15,6 +15,12 @@ export default meta;
 type Story = StoryObj<typeof Button>;
 
 export const Default: Story = {
+  args: {
+    children: "버튼",
+  },
+};
+
+export const Primary: Story = {
   args: {
     children: "버튼",
   },
@@ -93,7 +99,7 @@ export const Disabled: Story = {
 export const Loading: Story = {
   render: () => (
     <Button disabled>
-      <span className="animate-spin mr-2">⏳</span>
+      <span className="mr-2 animate-spin">⏳</span>
       로딩중...
     </Button>
   ),

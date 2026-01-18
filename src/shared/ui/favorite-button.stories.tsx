@@ -64,14 +64,6 @@ export const Sizes: Story = {
           />
           <span className="text-xs text-slate-400">lg</span>
         </div>
-        <div className="flex flex-col items-center gap-2">
-          <FavoriteToggleButton
-            isFavorite={true}
-            onClick={() => {}}
-            size="xl"
-          />
-          <span className="text-xs text-slate-400">xl</span>
-        </div>
       </div>
     );
   },
@@ -111,10 +103,6 @@ export const IconOnly: Story = {
         <div className="flex flex-col items-center gap-2">
           <FavoriteIcon isFavorite={true} size="lg" />
           <span className="text-xs text-slate-400">즐겨찾기</span>
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <FavoriteIcon isFavorite={true} size="xl" />
-          <span className="text-xs text-slate-400">xl</span>
         </div>
         <div className="flex flex-col items-center gap-2">
           <FavoriteIcon isFavorite={false} size="lg" />
