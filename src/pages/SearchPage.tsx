@@ -63,6 +63,10 @@ export function SearchPage() {
   }>({ isOpen: false, location: null });
 
   const [limitModal, setLimitModal] = useState(false);
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    message: string;
+  }>({ isOpen: false, message: "" });
 
   // 바텀시트 드래그 핸들러
   const handleDragStart = useCallback(
@@ -154,7 +158,9 @@ export function SearchPage() {
   // 즐겨찾기 스토어
   const {
     isFavorite,
+    isFavoriteByAddress,
     getFavorite,
+    getFavoriteByAddress,
     addFavorite,
     removeFavorite,
     favorites,
@@ -198,18 +204,29 @@ export function SearchPage() {
   );
 
   const handleSelectResult = async (item: SearchResultItem) => {
+    let selectedName = "";
+
     if (item.type === "place") {
-      const location = convertToLocation(item.data as KakaoPlace);
+      const place = item.data as KakaoPlace;
+      const location = convertToLocation(place);
       setSelectedLocation(location);
+      selectedName = place.place_name;
     } else if (item.type === "favorite") {
-      setSelectedLocation(item.data as Location);
+      const location = item.data as Location;
+      setSelectedLocation(location);
+      selectedName = item.favoriteNickname || location.name;
     } else {
-      const places = await kakaoApi.searchPlace(item.data as District);
+      const district = item.data as District;
+      const places = await kakaoApi.searchPlace(district);
       if (places.length > 0) {
         const location = convertToLocation(places[0]);
         setSelectedLocation(location);
       }
+      selectedName = district;
     }
+
+    // 검색창에 선택한 값 반영
+    handleInputChange(selectedName);
     setShowResults(false);
     setViewMode("weather");
     setSelectedClinic(null);
@@ -233,36 +250,40 @@ export function SearchPage() {
   const handleToggleFavorite = () => {
     if (!mapLocation) return;
 
-    if (mapLocation.id === "current-location") {
-      if (favorites.length >= 6) {
-        setLimitModal(true);
-        return;
-      }
-      const locationWithAddress: Location = {
-        ...mapLocation,
-        id: `current-${Date.now()}`,
-        name: currentLocationAddress || "현재 위치",
-        address: currentLocationAddress || "현재 위치",
-      };
-      setInputModal({ isOpen: true, location: locationWithAddress });
-      return;
-    }
+    // 주소 가져오기 (현재 위치인 경우 currentLocationAddress 사용)
+    const locationAddress =
+      mapLocation.id === "current-location"
+        ? currentLocationAddress
+        : mapLocation.address;
 
-    if (isFavorite(mapLocation.id)) {
-      const fav = getFavorite(mapLocation.id);
-      if (fav) {
-        setConfirmModal({
-          isOpen: true,
-          favoriteId: fav.id,
-          nickname: fav.nickname,
-        });
-      }
+    // 주소 기반으로 즐겨찾기 체크
+    const existingFavorite = getFavoriteByAddress(locationAddress);
+
+    if (existingFavorite) {
+      // 이미 즐겨찾기에 있으면 삭제 다이얼로그 표시
+      setConfirmModal({
+        isOpen: true,
+        favoriteId: existingFavorite.id,
+        nickname: existingFavorite.nickname,
+      });
     } else {
+      // 새로 추가
       if (favorites.length >= 6) {
         setLimitModal(true);
         return;
       }
-      setInputModal({ isOpen: true, location: mapLocation });
+
+      const locationToAdd: Location =
+        mapLocation.id === "current-location"
+          ? {
+              ...mapLocation,
+              id: `current-${Date.now()}`,
+              name: currentLocationAddress || "현재 위치",
+              address: currentLocationAddress || "현재 위치",
+            }
+          : mapLocation;
+
+      setInputModal({ isOpen: true, location: locationToAdd });
     }
   };
 
@@ -274,7 +295,13 @@ export function SearchPage() {
 
   const handleAddFavorite = (nickname: string) => {
     if (inputModal.location) {
-      addFavorite({ location: inputModal.location, nickname });
+      try {
+        addFavorite({ location: inputModal.location, nickname });
+      } catch (error) {
+        if (error instanceof Error) {
+          setErrorModal({ isOpen: true, message: error.message });
+        }
+      }
     }
   };
 
@@ -345,7 +372,7 @@ export function SearchPage() {
     } else if (item.type === "favorite") {
       // 이미 즐겨찾기인 경우 삭제
       const loc = item.data as Location;
-      const fav = getFavorite(loc.id);
+      const fav = getFavoriteByAddress(loc.address);
       if (fav) {
         setConfirmModal({
           isOpen: true,
@@ -358,15 +385,14 @@ export function SearchPage() {
 
     if (!location) return;
 
-    if (isFavorite(location.id)) {
-      const fav = getFavorite(location.id);
-      if (fav) {
-        setConfirmModal({
-          isOpen: true,
-          favoriteId: fav.id,
-          nickname: fav.nickname,
-        });
-      }
+    // 주소 기반으로 즐겨찾기 체크
+    const existingFavorite = getFavoriteByAddress(location.address);
+    if (existingFavorite) {
+      setConfirmModal({
+        isOpen: true,
+        favoriteId: existingFavorite.id,
+        nickname: existingFavorite.nickname,
+      });
     } else {
       if (favorites.length >= 6) {
         setLimitModal(true);
@@ -376,11 +402,13 @@ export function SearchPage() {
     }
   };
 
-  // 검색 결과 아이템이 즐겨찾기인지 확인
+  // 검색 결과 아이템이 즐겨찾기인지 확인 (주소 기반)
   const isResultFavorite = (item: SearchResultItem): boolean => {
     if (item.type === "favorite") return true;
     if (item.type === "place") {
-      return isFavorite((item.data as KakaoPlace).id);
+      const place = item.data as KakaoPlace;
+      const address = place.address_name || place.road_address_name;
+      return isFavoriteByAddress(address);
     }
     return false;
   };
@@ -391,27 +419,22 @@ export function SearchPage() {
     isCurrentlyFavorite: boolean,
   ) => {
     if (isCurrentlyFavorite) {
-      // 즐겨찾기 해제
+      // 즐겨찾기 해제 - 주소 기반으로 찾기
+      let address = "";
       if (item.type === "favorite") {
-        const location = item.data as Location;
-        const fav = getFavorite(location.id);
-        if (fav) {
-          setConfirmModal({
-            isOpen: true,
-            favoriteId: fav.id,
-            nickname: fav.nickname,
-          });
-        }
+        address = (item.data as Location).address;
       } else if (item.type === "place") {
         const place = item.data as KakaoPlace;
-        const fav = getFavorite(place.id);
-        if (fav) {
-          setConfirmModal({
-            isOpen: true,
-            favoriteId: fav.id,
-            nickname: fav.nickname,
-          });
-        }
+        address = place.address_name || place.road_address_name;
+      }
+
+      const fav = getFavoriteByAddress(address);
+      if (fav) {
+        setConfirmModal({
+          isOpen: true,
+          favoriteId: fav.id,
+          nickname: fav.nickname,
+        });
       }
     } else {
       // 즐겨찾기 추가
@@ -454,10 +477,14 @@ export function SearchPage() {
   const isDataLoading =
     isWeatherLoading || isForecastLoading || isClinicsLoading;
 
+  // 주소 기반으로 즐겨찾기 여부 확인 (현재 위치도 포함)
   const isLocationFavorite = Boolean(
     mapLocation &&
-    mapLocation.id !== "current-location" &&
-    isFavorite(mapLocation.id),
+    isFavoriteByAddress(
+      mapLocation.id === "current-location"
+        ? currentLocationAddress
+        : mapLocation.address,
+    ),
   );
 
   return (
@@ -469,16 +496,11 @@ export function SearchPage() {
             searchQuery={searchQuery}
             onSearchChange={(value: string) => {
               handleInputChange(value);
-              setShowResults(true);
-              setTabMode("search");
             }}
             onSearch={() => {
               triggerSearch();
-              setShowResults(true);
-              setTabMode("search");
             }}
             onClear={handleClearSearch}
-            showResults={showResults && !!searchQuery && tabMode === "search"}
             results={results}
             onSelectResult={handleSelectResult}
             onToggleFavorite={handleCommandFavoriteToggle}
@@ -687,6 +709,17 @@ export function SearchPage() {
         description="새로운 별칭을 입력하세요"
         placeholder="예: 우리집, 회사"
         defaultValue={editModal.currentNickname}
+      />
+
+      <ConfirmModal
+        open={errorModal.isOpen}
+        onOpenChange={(open) =>
+          !open && setErrorModal({ isOpen: false, message: "" })
+        }
+        onConfirm={() => setErrorModal({ isOpen: false, message: "" })}
+        title="알림"
+        description={errorModal.message}
+        confirmText="확인"
       />
     </div>
   );

@@ -89,10 +89,17 @@ export function LocationDetailPage() {
           <Button
             variant={isCurrentlyFavorite ? "default" : "outline"}
             onClick={handleToggleFavorite}
+            className={
+              isCurrentlyFavorite
+                ? "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500"
+                : ""
+            }
           >
             <Star
               className={`h-4 w-4 mr-2 ${
-                isCurrentlyFavorite ? "fill-current" : ""
+                isCurrentlyFavorite
+                  ? "fill-white text-white"
+                  : "text-yellow-500"
               }`}
             />
             {isCurrentlyFavorite ? "즐겨찾기 삭제" : "즐겨찾기 추가"}

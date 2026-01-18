@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../shared/ui/card";
 import { Badge } from "../../shared/ui/badge";
 import { Thermometer, Wind, Droplets, Clock } from "lucide-react";
 import type { WeatherData, HourlyForecast } from "../../shared/types";
-import { getWeatherIcon } from "../../shared/lib/weatherUtils";
+import { getWeatherIconInfo } from "../../shared/lib/weatherUtils";
 
 interface WeatherCardProps {
   weather: WeatherData;
@@ -16,7 +16,8 @@ export function WeatherCard({
   showDetails = false,
 }: WeatherCardProps) {
   const currentWeather = weather.weather[0];
-  const weatherIcon = getWeatherIcon(currentWeather.id);
+  const weatherIconInfo = getWeatherIconInfo(currentWeather.id);
+  const WeatherIcon = weatherIconInfo.icon;
   const next24Hours = forecasts?.slice(0, 8) || [];
 
   return (
@@ -24,7 +25,11 @@ export function WeatherCard({
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>현재 날씨</span>
-          <span className="text-4xl">{weatherIcon}</span>
+          <div
+            className={`p-2 rounded-full border-2 ${weatherIconInfo.borderColor} bg-white`}
+          >
+            <WeatherIcon className={`w-8 h-8 ${weatherIconInfo.color}`} />
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -84,7 +89,10 @@ export function WeatherCard({
             <div className="flex gap-4 pb-2 overflow-x-auto">
               {next24Hours.map((forecast, index) => {
                 const time = new Date(forecast.dt * 1000);
-                const icon = getWeatherIcon(forecast.weather[0].id);
+                const forecastIconInfo = getWeatherIconInfo(
+                  forecast.weather[0].id,
+                );
+                const ForecastIcon = forecastIconInfo.icon;
 
                 return (
                   <div
@@ -94,7 +102,13 @@ export function WeatherCard({
                     <p className="text-xs text-muted-foreground">
                       {time.getHours()}시
                     </p>
-                    <span className="text-2xl">{icon}</span>
+                    <div
+                      className={`p-1.5 rounded-full border ${forecastIconInfo.borderColor} bg-white`}
+                    >
+                      <ForecastIcon
+                        className={`w-5 h-5 ${forecastIconInfo.color}`}
+                      />
+                    </div>
                     <p className="font-medium">
                       {Math.round(forecast.main.temp)}°
                     </p>

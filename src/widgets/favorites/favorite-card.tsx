@@ -9,7 +9,7 @@ import { useFavoritesStore } from "../../shared/store/useFavoritesStore";
 import { useWeather } from "../../features/weather/use-weather";
 
 import type { Favorite } from "../../shared/types";
-import { getWeatherIcon } from "../../shared/lib/weatherUtils";
+import { getWeatherIconInfo } from "../../shared/lib/weatherUtils";
 
 interface FavoriteCardProps {
   favorite: Favorite;
@@ -86,29 +86,39 @@ export function FavoriteCard({ favorite, onEditNickname }: FavoriteCardProps) {
           {isLoading ? (
             <div className="text-xs text-muted-foreground">...</div>
           ) : weather ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-4xl">
-                  {getWeatherIcon(weather.weather[0].id)}
-                </span>
-                <div>
-                  <p className="text-2xl font-bold">
-                    {Math.round(weather.main.temp)}°C
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {weather.weather[0].description}
-                  </p>
+            (() => {
+              const weatherIconInfo = getWeatherIconInfo(weather.weather[0].id);
+              const WeatherIcon = weatherIconInfo.icon;
+              return (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`p-2 rounded-full border-2 ${weatherIconInfo.borderColor} bg-white`}
+                    >
+                      <WeatherIcon
+                        className={`w-7 h-7 ${weatherIconInfo.color}`}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">
+                        {Math.round(weather.main.temp)}°C
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {weather.weather[0].description}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-1 text-right">
+                    <Badge variant="secondary" className="text-xs">
+                      최고 {Math.round(weather.main.temp_max)}°
+                    </Badge>
+                    <Badge variant="outline" className="block text-xs">
+                      최저 {Math.round(weather.main.temp_min)}°
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-1 text-right">
-                <Badge variant="secondary" className="text-xs">
-                  최고 {Math.round(weather.main.temp_max)}°
-                </Badge>
-                <Badge variant="outline" className="block text-xs">
-                  최저 {Math.round(weather.main.temp_min)}°
-                </Badge>
-              </div>
-            </div>
+              );
+            })()
           ) : (
             <p className="text-sm text-muted-foreground">날씨 정보 없음</p>
           )}

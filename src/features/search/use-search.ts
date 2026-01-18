@@ -53,31 +53,90 @@ export function useSearch() {
     }
   }, [searchQuery]);
 
-  // 검색 결과 통합 (즐겨찾기 → 행정구역 → Kakao 검색 순)
+  // 검색 결과 통합 - 즐겨찾기 → 행정구역 → Kakao API 순
   const combinedResults = useMemo((): SearchResultItem[] => {
     const results: SearchResultItem[] = [];
+    const query = searchQuery.trim().toLowerCase();
 
-    // 즐겨찾기 결과 추가 (별칭으로 검색 가능) - 제한 없음
-    favoriteResults.forEach((fav) => {
-      results.push({
-        type: "favorite",
-        data: fav.location,
-        favoriteNickname: fav.nickname,
+    // 즐겨찾기는 항상 표시 (검색어 없으면 전체, 있으면 필터링)
+    if (query) {
+      // 검색어가 있으면 필터링된 즐겨찾기만
+      favoriteResults.forEach((fav) => {
+        const nickname = fav.nickname.toLowerCase();
+        const name = fav.location.name.toLowerCase();
+        const address = fav.location.address.toLowerCase();
+
+        // 완전 일치 우선순위 계산
+        let priority = 103; // 즐겨찾기 기본값 (100대: 즐겨찾기)
+        if (nickname === query || name === query || address.includes(query)) {
+          priority = 101; // 즐겨찾기 완전 일치
+        } else if (nickname.startsWith(query) || name.startsWith(query)) {
+          priority = 102; // 즐겨찾기 시작 일치
+        }
+
+        results.push({
+          type: "favorite",
+          data: fav.location,
+          favoriteNickname: fav.nickname,
+          priority,
+        });
       });
-    });
+    } else {
+      // 검색어 없으면 모든 즐겨찾기 표시
+      favorites.forEach((fav) => {
+        results.push({
+          type: "favorite",
+          data: fav.location,
+          favoriteNickname: fav.nickname,
+          priority: 100, // 즐겨찾기 최우선
+        });
+      });
+    }
 
-    // 로컬 결과 추가 - 제한 없음
-    localResults.forEach((district: District) => {
-      results.push({ type: "district", data: district });
-    });
+    // 검색어가 있을 때만 행정구역 결과 추가
+    if (query) {
+      localResults.forEach((district: District) => {
+        const districtLower = district.toLowerCase();
+        let priority = 203; // 행정구역 기본값 (200대: 행정구역)
+        if (districtLower === query) {
+          priority = 201; // 행정구역 완전 일치
+        } else if (districtLower.startsWith(query)) {
+          priority = 202; // 행정구역 시작 일치
+        }
 
-    // Kakao 결과 추가 - 제한 없음
-    kakaoResults.forEach((place: KakaoPlace) => {
-      results.push({ type: "place", data: place });
-    });
+        results.push({ type: "district", data: district, priority });
+      });
+    }
 
-    return results;
-  }, [favoriteResults, localResults, kakaoResults]);
+    // Kakao API 결과 추가 (검색 실행 시에만)
+    if (submittedQuery) {
+      kakaoResults.forEach((place: KakaoPlace) => {
+        const placeName = place.place_name.toLowerCase();
+        const address = (
+          place.address_name || place.road_address_name
+        ).toLowerCase();
+
+        let priority = 303; // Kakao API 기본값 (300대: Kakao)
+        if (placeName === query || address.includes(query)) {
+          priority = 301; // Kakao 완전 일치
+        } else if (placeName.startsWith(query)) {
+          priority = 302; // Kakao 시작 일치
+        }
+
+        results.push({ type: "place", data: place, priority });
+      });
+    }
+
+    // 우선순위로 정렬 (낮은 숫자가 먼저)
+    return results.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+  }, [
+    searchQuery,
+    favoriteResults,
+    localResults,
+    submittedQuery,
+    kakaoResults,
+    favorites,
+  ]);
 
   // 검색 초기화
   const clearSearch = useCallback(() => {

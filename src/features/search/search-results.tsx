@@ -10,6 +10,7 @@ export interface SearchResultItem {
   type: "district" | "place" | "favorite";
   data: District | KakaoPlace | Location;
   favoriteNickname?: string;
+  priority?: number; // 검색 정확도 우선순위 (1=완전일치, 2=시작일치, 3=부분일치)
 }
 
 interface SearchResultsProps {
@@ -45,7 +46,7 @@ export function SearchResults({
   // 행정구역 즐겨찾기 클릭 핸들러
   const handleDistrictFavoriteClick = async (
     e: React.MouseEvent,
-    district: District
+    district: District,
   ) => {
     e.stopPropagation();
     if (favorites.length >= 6) {
@@ -138,7 +139,7 @@ export function SearchResults({
   };
 
   return (
-    <Card className="absolute z-50 w-full mt-2 max-h-96 overflow-y-auto bg-white border shadow-lg">
+    <Card className="absolute z-50 w-full mt-2 overflow-y-auto bg-white border shadow-lg max-h-96">
       <div className="divide-y">
         {results.map((item, index) => {
           const isPlaceFavorite =
@@ -148,7 +149,7 @@ export function SearchResults({
             <div
               key={index}
               onClick={() => onSelect(item)}
-              className="w-full text-left px-4 py-3 hover:bg-slate-100 transition-colors flex items-start gap-3 bg-white cursor-pointer"
+              className="flex items-start w-full gap-3 px-4 py-3 text-left transition-colors bg-white cursor-pointer hover:bg-slate-100"
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === "Enter" && onSelect(item)}
@@ -169,7 +170,7 @@ export function SearchResults({
                     }}
                     className="p-1.5 hover:bg-slate-200 rounded-md shrink-0"
                   >
-                    <Star className="h-5 w-5 text-slate-500" />
+                    <Star className="w-5 h-5 text-slate-500" />
                   </button>
                 </>
               ) : item.type === "favorite" ? (
@@ -179,10 +180,10 @@ export function SearchResults({
                     <p className="font-medium truncate">
                       {item.favoriteNickname}
                     </p>
-                    <p className="text-sm text-slate-500 truncate">
+                    <p className="text-sm truncate text-slate-500">
                       {(item.data as Location).address}
                     </p>
-                    <p className="text-xs text-blue-600 mt-1">즐겨찾기</p>
+                    <p className="mt-1 text-xs text-blue-600">즐겨찾기</p>
                   </div>
                   <button
                     onClick={(e) => {
@@ -191,7 +192,7 @@ export function SearchResults({
                     }}
                     className="p-1.5 hover:bg-slate-200 rounded-md shrink-0"
                   >
-                    <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                    <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
                   </button>
                 </>
               ) : (
@@ -201,11 +202,11 @@ export function SearchResults({
                     <p className="font-medium truncate">
                       {(item.data as KakaoPlace).place_name}
                     </p>
-                    <p className="text-sm text-slate-500 truncate">
+                    <p className="text-sm truncate text-slate-500">
                       {(item.data as KakaoPlace).address_name}
                     </p>
                     {(item.data as KakaoPlace).category_name && (
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="mt-1 text-xs text-slate-500">
                         {(item.data as KakaoPlace).category_name}
                       </p>
                     )}

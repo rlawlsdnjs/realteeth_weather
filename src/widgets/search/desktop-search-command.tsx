@@ -15,6 +15,7 @@ interface DesktopSearchCommandProps {
   results: SearchResultItem[];
   onSelectResult: (item: SearchResultItem) => void;
   onToggleFavorite?: (item: SearchResultItem, isFavorite: boolean) => void;
+  inputRef?: React.RefObject<HTMLInputElement>;
 }
 
 const ITEMS_PER_PAGE = 20;
@@ -23,9 +24,11 @@ export function DesktopSearchCommand({
   results,
   onSelectResult,
   onToggleFavorite,
+  inputRef,
 }: DesktopSearchCommandProps) {
   const { isFavorite } = useFavoritesStore();
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const commandRef = useRef<HTMLDivElement>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
 
   // 결과를 타입별로 그룹화
@@ -77,15 +80,26 @@ export function DesktopSearchCommand({
   const hasMore = visibleCount < totalNonFavItems.length;
 
   return (
-    <div className="absolute left-0 right-0 z-50 mt-2 top-full">
+    <div
+      className="absolute left-0 right-0 z-50 mt-2 top-full"
+      onMouseDown={(e) => {
+        // 클릭 시 input blur 방지
+        e.preventDefault();
+      }}
+    >
       <Command
-        className="bg-white border rounded-lg shadow-md"
+        ref={commandRef}
+        className="bg-white border rounded-lg shadow-md outline-none"
         shouldFilter={false}
-        loop={false}
+        loop={true}
+        tabIndex={0}
         onKeyDown={(e) => {
-          // 검색창에 입력이 가능하도록 키 이벤트 전파 방지하지 않음
           if (e.key === "Escape") {
             e.stopPropagation();
+            // 검색창으로 포커스 복귀
+            if (inputRef?.current) {
+              inputRef.current.focus();
+            }
           }
         }}
       >
@@ -103,7 +117,7 @@ export function DesktopSearchCommand({
                     key={`fav-${index}`}
                     value={`fav-${location.id}`}
                     onSelect={() => onSelectResult(item)}
-                    className="cursor-pointer"
+                    className="cursor-pointer data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary"
                   >
                     <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                     <div className="flex flex-col flex-1 min-w-0">
@@ -138,7 +152,7 @@ export function DesktopSearchCommand({
                       key={`place-${index}`}
                       value={`place-${place.id}`}
                       onSelect={() => onSelectResult(item)}
-                      className="cursor-pointer"
+                      className="cursor-pointer data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary"
                     >
                       <Building className="w-4 h-4 text-muted-foreground" />
                       <div className="flex flex-col flex-1 min-w-0">
@@ -172,7 +186,7 @@ export function DesktopSearchCommand({
                       key={`district-${index}`}
                       value={`district-${district}`}
                       onSelect={() => onSelectResult(item)}
-                      className="cursor-pointer"
+                      className="cursor-pointer data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary"
                     >
                       <MapPin className="w-4 h-4 text-muted-foreground" />
                       <span className="font-medium flex-1">{district}</span>
